@@ -1,0 +1,6 @@
+Serenity README
+===============
+
+Serenity is a tool to automaticaly rename your favourites shows.
+It can work both on video files or subtitle files.
+It is entirely written in Bash. Output filenames can be customized.
