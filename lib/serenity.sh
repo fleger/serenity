@@ -15,6 +15,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 export LANG=C
+shopt -s extglob
 
 . "${serenity_env_lib}/tools.sh" || exit 1
 
@@ -52,7 +53,7 @@ serenity.steps.tokenizing() {
         results["${serenity_conf_tokenizers_associations:0:1}"]="${BASH_REMATCH[1]}" &&
         results["${serenity_conf_tokenizers_associations:1:1}"]="${BASH_REMATCH[2]}" &&
         results["${serenity_conf_tokenizers_associations:2:1}"]="${BASH_REMATCH[3]}" &&
-        printf "%s\n%s\n%s\n" "${results[t]}" "${results[s]}" "${results[e]}" &&
+        printf "%s\n%s\n%s\n" "${results[t]}" "${results[s]/#*(0)/}" "${results[e]/#*(0)/}" &&
         return 0
     done
     return 1
@@ -83,10 +84,10 @@ serenity.steps.postprocessing() {
 
 serenity.steps.formatting() {
     local -A associations
-    associations["t"]="${1//$'\n'/}"
-    associations["s"]="${2//$'\n'/}"
-    associations["e"]="${3//$'\n'/}"
-    associations["n"]="${4//$'\n'/}"
+    associations["t"]="${1}"
+    associations["s"]="${2/#*(0)/}"
+    associations["e"]="${3/#*(0)/}"
+    associations["n"]="${4}"
     local fields=()
     local c
     for c in $(serenity.tools.characters "$serenity_conf_formatting_associations"); do
