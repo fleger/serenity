@@ -1,3 +1,19 @@
+#    serenity - An automated episode renamer.
+#    Copyright (C) 2010  Florian Léger
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 DESTDIR=
 PREFIX=/usr/local
 CONFDIR=/etc
@@ -29,7 +45,7 @@ TARFLAGS=-acf
 SUBDIRS=lib
 BINS=serenity
 CONFS=serenity.conf
-SOURCES=serenity.in serenity-devel README INSTALL Makefile $(CONFS)
+SOURCES=serenity.in serenity-devel README INSTALL COPYING Makefile $(CONFS)
 
 SUBMAKEFLAGS='DESTDIR=$(DESTDIR)' 'PREFIX=$(PREFIX)' 'CONFDIR=$(CONFDIR)' 'BINDIR=$(BINDIR)' 'LIBDIR=$(LIBDIR)' 'SED=$(SED)' 'INSTALL=$(INSTALL)' 'RM=$(RM)' 'RMDIR=$(RMDIR)' 'INSTALLBINFLAGS=$(INSTALLBINFLAGS)' 'INSTALLFLAGS=$(INSTALLFLAGS)' 'INSTALLDIRFLAGS=$(INSTALLDIRFLAGS)' 'NAME=$(NAME)' 'VERSION=$(VERSION)'
 
