@@ -1,0 +1,12 @@
+#! /bin/bash
+
+BASE_DIR="""$(dirname "$0")"""
+
+serenity_env_conf=("$BASE_DIR/serenity.conf")
+serenity_env_lib="$BASE_DIR/lib"
+serenity_env_executable="$0"
+
+if [ -f "${serenity_env_lib}/serenity.sh" ]; then
+    . "${serenity_env_lib}/serenity.sh"
+    serenity.main "$@"
+fi
