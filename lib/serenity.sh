@@ -35,20 +35,20 @@ serenity.loadBackends() {
 
 serenity.steps.preprocessing() {
     # URL decode the filename
-    local arg="""$(serenity.tools.urlDecode "$1")"""
-    local sedLine=()
-    local pp
+    local arg="""$(serenity.tools.urlDecode "$1")""" &&
+    local sedLine=() &&
+    local pp &&
     for pp in "${serenity_conf_preprocessing[@]}"; do
-        sedLine+=("-e")
+        sedLine+=("-e") &&
         sedLine+=("$pp")
-    done
+    done &&
     echo "$arg" | sed -r "${sedLine[@]}"
 }
 
 serenity.steps.tokenizing() {
-    local i
+    local i  &&
     for i in "${!serenity_conf_tokenizers_regex[@]}"; do
-        local -A results
+        local -A results &&
         [[ $1 =~ ${serenity_conf_tokenizers_regex[$i]} ]] &&
         results["${serenity_conf_tokenizers_associations:0:1}"]="${BASH_REMATCH[1]}" &&
         results["${serenity_conf_tokenizers_associations:1:1}"]="${BASH_REMATCH[2]}" &&
@@ -60,7 +60,7 @@ serenity.steps.tokenizing() {
 }
 
 serenity.steps.refining() {
-    local backend
+    local backend &&
     for backend in "${serenity_conf_backends[@]}"; do
         serenity.backends.$backend $@ &&
         return 0
@@ -69,30 +69,33 @@ serenity.steps.refining() {
 }
 
 serenity.steps.postprocessing() {
-    local sedLine=()
-    local pp
+    local sedLine=() &&
+    local pp &&
     for pp in "${serenity_conf_postprocessing[@]}"; do
-        sedLine+=("-e")
+        sedLine+=("-e") &&
         sedLine+=("$pp")
     done
-    sedLine+=('-e')
-    sedLine+=('s/[/\]/-/g')                 # Force substitution of slashes / backslashes
+    sedLine+=('-e')  &&
+    sedLine+=('s/[/\]/-/g') &&                # Force substitution of slashes / backslashes
     for arg; do
         echo "$arg" | sed -r "${sedLine[@]}"
     done
 }
 
 serenity.steps.formatting() {
-    local -A associations
-    associations["t"]="${1}"
-    associations["s"]="${2/#*(0)/}"
-    associations["e"]="${3/#*(0)/}"
-    associations["n"]="${4}"
-    local fields=()
-    local c
+    local -A associations &&
+    local fields=() &&
+    local c &&
+
+    associations["t"]="${1}" &&
+    associations["s"]="${2/#*(0)/}" &&
+    associations["e"]="${3/#*(0)/}" &&
+    associations["n"]="${4}" &&
+
     for c in $(serenity.tools.characters "$serenity_conf_formatting_associations"); do
         fields+=("""${associations["${c}"]}""")
-    done
+    done &&
+
     printf "$serenity_conf_formatting_format" "${fields[@]}"
 }
 
@@ -107,18 +110,25 @@ serenity.steps.move() {
 }
 
 serenity.steps() {
+    local preProcessedName &&
+    local rawTokens &&
+    local refinedTokens &&
+    local postProcessedTokens &&
+    local formattedName &&
+    local finalName &&
     local fileName="""$(basename "$1")""" &&
-    local preProcessedName="""$(serenity.steps.preprocessing "$fileName")""" &&
+
+    preProcessedName="""$(serenity.steps.preprocessing "$fileName")""" &&
 #     printf "Pre-processed filename: %s\n" "$preProcessedName" &&
-    local rawTokens="""$(serenity.steps.tokenizing "$preProcessedName")""" &&
-#     printf "Raw tokens:\n%s\n" "$rawTokens" &&
-    local refinedTokens="$(serenity.steps.refining $rawTokens)" &&
+    rawTokens="""$(serenity.steps.tokenizing "$preProcessedName")""" &&
+#     printf "$? Raw tokens:\n%s\n" "$rawTokens" &&
+    refinedTokens="$(serenity.steps.refining $rawTokens)" &&
 #     printf "Refined tokens:\n%s\n" "$refinedTokens" &&
-    local postProcessedTokens="$(serenity.steps.postprocessing $refinedTokens)" &&
+    postProcessedTokens="$(serenity.steps.postprocessing $refinedTokens)" &&
 #     printf "Post-processed tokens:\n%s\n" "$postProcessedTokens" &&
-    local formattedName="$(serenity.steps.formatting $postProcessedTokens)" &&
+    formattedName="$(serenity.steps.formatting $postProcessedTokens)" &&
 #     printf "Formatted name: %s\n" "$formattedName" &&
-    local finalName="""$(serenity.steps.extension "$formattedName" "$fileName")""" &&
+    finalName="""$(serenity.steps.extension "$formattedName" "$fileName")""" &&
 #     printf "Final name: %s\n" "$finalName" &&
     if [ ! "$serenity_conf_dry_run" ]; then
         serenity.steps.move "$1" "$serenity_conf_output_dir/$finalName"
