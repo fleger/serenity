@@ -144,13 +144,10 @@ EOF
 }
 
 serenity.run() {
-    local OLD_IFS="$IFS"
-    IFS=$'\n'
     local f
     for f; do
-        serenity.steps "$f"
+        serenity.steps "$f" || return 1
     done
-    IFS="$OLD_IFS"
 }
 
 serenity.list() {
@@ -204,6 +201,11 @@ serenity.main() {
     done
     shift $(($OPTIND - 1))
     (($# < 1)) && [ "$action" = "run" ] && action="help"
-    
+
+    local OLD_IFS="$IFS"
+    IFS=$'\n'
     ${actions[$action]} "$@"
+    local errorCode=$?
+    IFS="$OLD_IFS"
+    exit $errorCode
 }
