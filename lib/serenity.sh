@@ -217,5 +217,5 @@ serenity.main() {
     ${actions[$action]} "$@"
     local errorCode=$?
     IFS="$OLD_IFS"
-    exit $errorCode
+    return $errorCode
 }
