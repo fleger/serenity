@@ -134,7 +134,7 @@ serenity.steps() {
     finalName="""$(serenity.steps.extension "$formattedName" "$fileName")""" &&
 #     printf "Final name: %s\n" "$finalName" &&
     if [ ! "$serenity_conf_dry_run" ]; then
-        serenity.steps.move "$1" "$serenity_conf_output_prefix/$finalName"
+        serenity.steps.move "$1" "$serenity_conf_output_prefix$finalName"
     else
         echo "$finalName"
     fi
