@@ -19,6 +19,9 @@ shopt -s extglob
 . "${serenity_env_lib}/tools.sh" || exit 1
 
 serenity.loadConfig() {
+    serenity_conf_output_prefix=""
+    serenity_conf_mv_args=""
+
     local f
     for f in "${serenity_env_conf[@]}"; do
         [ -f "$f" ] && . "$f"
@@ -105,7 +108,8 @@ serenity.steps.extension() {
 }
 
 serenity.steps.move() {
-    mv "$1" "$2"
+    mkdir -p """$(dirname "$2")""" &&
+    mv $serenity_mv_args "$1" "$2"
 }
 
 serenity.steps() {
@@ -130,7 +134,7 @@ serenity.steps() {
     finalName="""$(serenity.steps.extension "$formattedName" "$fileName")""" &&
 #     printf "Final name: %s\n" "$finalName" &&
     if [ ! "$serenity_conf_dry_run" ]; then
-        serenity.steps.move "$1" "$serenity_conf_output_dir/$finalName"
+        serenity.steps.move "$1" "$serenity_conf_output_prefix/$finalName"
     else
         echo "$finalName"
     fi
@@ -145,7 +149,11 @@ Options and arguments:
     -d              dry-run; don't rename files, only print their new name
     -l <string>     list parameter values and exit:
                         - preprocessing, tokenizers, backends, postprocessing, formatting
-    -o <string>     set output directory [default: current directory]
+    -p <string>     set output prefix [default: none]
+    -b              backup each existing destination file
+    -f              do not prompt before overwriting
+    -i              prompt before overwrite
+    -n              do not overwrite an existing file
     -h              show help and exit
 
 EOF
@@ -197,14 +205,18 @@ serenity.main() {
     actions["list"]=serenity.list
     local opt
     local action="run"
-    serenity_conf_output_dir="$PWD"
+
     while getopts hdl:o: opt; do
         case "$opt" in
             d) serenity_conf_dry_run="0";;
             l)
                 serenity_conf_list="$OPTARG"
                 action="list";;
-            o) serenity_conf_output_dir="$OPTARG";;
+            p) serenity_conf_output_prefix="$OPTARG";;
+            f) serenity_conf_mv_args+="-f ";;
+            i) serenity_conf_mv_args+="-i ";;
+            b) serenity_conf_mv_args+="-b ";;
+            b) serenity_conf_mv_args+="-n ";;
             h|?) action="help";;
         esac
     done
