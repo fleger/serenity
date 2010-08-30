@@ -11,9 +11,10 @@ See INSTALL.
 Configuration
 =============
 Configuration is merged from 3 bash files:
- 1.  ./serenity.conf
- 2.  ~/.serenityrc
- 3.  /etc/serenity.conf
+
+1.  ./serenity.conf
+2.  ~/.serenityrc
+3.  /etc/serenity.conf
 
 See /etc/serenity.conf for further information.
 
