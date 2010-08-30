@@ -1,0 +1,28 @@
+What is Serenity?
+=================
+Serenity is a tool to automaticaly rename your favourites shows.
+It can work both on video files or subtitle files.
+It is entirely written in Bash. Output filenames can be customized.
+
+Installation
+============
+See INSTALL.
+
+Configuration
+=============
+Configuration is merged from 3 bash files:
+- ./serenity.conf
+- ~/.serenityrc
+- /etc/serenity.conf
+
+See /etc/serenity.conf for further information.
+
+Tips and tricks
+===============
+Running without installing
+--------------------------
+Unpack and run `./serenity-devel`. Configuration is read from serenity.conf only.
+
+Backup
+------
+To prevent serenity from erasing files, use `serenity -b`. You can use the SIMPLE_BACKUP_SUFFIX and VERSION_CONTROL environment variables to fine tune this behaviour (see mv's manpage for further information).
