@@ -34,7 +34,7 @@ INSTALLDIRFLAGS=-d
 INSTALLFLAGS=-D -m644
 
 NAME=serenity
-VERSION=0.2.0
+VERSION=$(shell date +%Y%m%d)
 
 TARDIR=$(NAME)-$(VERSION)
 override TARDIR:=$(abspath $(TARDIR))
