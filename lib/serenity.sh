@@ -20,7 +20,7 @@ shopt -s extglob
 
 serenity.loadConfig() {
     serenity_conf_output_prefix=""
-    serenity_conf_mv_args=""
+    serenity_conf_mv_args=()
 
     local f
     for f in "${serenity_env_conf[@]}"; do
@@ -109,7 +109,7 @@ serenity.steps.extension() {
 
 serenity.steps.move() {
     mkdir -p """$(dirname "$2")""" &&
-    mv $serenity_mv_args "$1" "$2"
+    mv "${serenity_conf_mv_args[@]}" "$1" "$2"
 }
 
 serenity.steps() {
@@ -149,10 +149,10 @@ Options and arguments:
     -d              dry-run; don't rename files, only print their new name
     -l <string>     list parameter values and exit:
                         - preprocessing, tokenizers, backends, postprocessing, formatting
-    -p <string>     set output prefix [default: none]
-    -b              backup each existing destination file
+    -o <string>     set output prefix [default: none]
     -f              do not prompt before overwriting
     -i              prompt before overwrite
+    -b              backup each existing destination file
     -n              do not overwrite an existing file
     -h              show help and exit
 
@@ -206,17 +206,17 @@ serenity.main() {
     local opt
     local action="run"
 
-    while getopts hdl:o: opt; do
+    while getopts dl:o:fibnh opt; do
         case "$opt" in
             d) serenity_conf_dry_run="0";;
             l)
                 serenity_conf_list="$OPTARG"
                 action="list";;
-            p) serenity_conf_output_prefix="$OPTARG";;
-            f) serenity_conf_mv_args+="-f ";;
-            i) serenity_conf_mv_args+="-i ";;
-            b) serenity_conf_mv_args+="-b ";;
-            b) serenity_conf_mv_args+="-n ";;
+            o) serenity_conf_output_prefix="$OPTARG";;
+            f) serenity_conf_mv_args+=(-f);;
+            i) serenity_conf_mv_args+=(-i);;
+            b) serenity_conf_mv_args+=(-b);;
+            n) serenity_conf_mv_args+=(-n);;
             h|?) action="help";;
         esac
     done
