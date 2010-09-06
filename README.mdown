@@ -6,7 +6,32 @@ It is entirely written in Bash. Output filenames can be customized.
 
 Installation
 ============
-See INSTALL.
+Dependancies
+------------
+- bash >= 4.0
+- curl
+- make (build)
+
+Procedure
+---------
+Default installation goes into /usr/local.
+
+    make clean
+    make
+    make install
+
+Uninstallation
+--------------
+    make uninstall
+
+Source archive
+--------------
+    make archive
+
+For packagers
+-------------
+    make PREFIX=/usr
+    make PREFIX=/usr DESTDIR="$pkgdir" install
 
 Configuration
 =============
