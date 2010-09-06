@@ -17,7 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 serenity_env_conf=("%CONFDIR%/serenity.conf"
-                   "$HOME/.serenityrc"
+                   "$XDG_DATA_HOME/serenity/serenity.conf"
                    "$PWD/serenity.conf"
                    )
 serenity_env_lib="%LIBDIR%"
