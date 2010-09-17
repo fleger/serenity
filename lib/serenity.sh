@@ -21,10 +21,21 @@ shopt -s extglob
 serenity.loadConfig() {
     serenity_conf_output_prefix=""
     serenity_conf_mv_args=()
-
+    local -a loadedFiles
     local f
+    local i
+    local alreadyLoaded
     for f in "${serenity_env_conf[@]}"; do
-        [ -f "$f" ] && . "$f"
+        [ -f "$f" ] &&
+        alreadyLoaded=false &&
+        f="$(readlink -f ${f})" &&
+        for i in "${loadedFiles[@]}"; do
+            [[ ${i} == ${f} ]] &&
+            alreadyLoaded=true
+        done &&
+        ! $alreadyLoaded &&
+        loadedFiles+=(${f}) &&
+        . ${f}
     done
 }
 
