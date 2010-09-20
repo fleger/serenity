@@ -16,10 +16,10 @@
 
 shopt -s extglob
 
-. "${serenity_env_lib}/tools.sh" || exit 1
+. ${serenity_env_lib}/tools.sh || exit 1
 
 serenity.loadConfig() {
-    serenity_conf_output_prefix=""
+    serenity_conf_output_prefix="."
     serenity_conf_mv_args=()
     local -a loadedFiles
     local f
@@ -41,21 +41,22 @@ serenity.loadConfig() {
 
 serenity.loadBackends() {
     local f
-    for f in "${serenity_env_lib}/backends/"*.sh; do
-        [ -f "$f" ] && . "$f"
+    for f in ${serenity_env_lib}/backends/*.sh; do
+        [ -f ${f} ] &&
+        . ${f}
     done
 }
 
 serenity.steps.preprocessing() {
     # URL decode the filename
-    local arg="""$(serenity.tools.urlDecode "$1")""" &&
+    local arg="$(serenity.tools.urlDecode ${1})" &&
     local sedLine=() &&
     local pp &&
     for pp in "${serenity_conf_preprocessing[@]}"; do
-        sedLine+=("-e") &&
-        sedLine+=("$pp")
+        sedLine+=(-e) &&
+        sedLine+=(${pp})
     done &&
-    echo "$arg" | sed -r "${sedLine[@]}"
+    echo ${arg} | sed -r "${sedLine[@]}"
 }
 
 serenity.steps.tokenizing() {
@@ -85,13 +86,13 @@ serenity.steps.postprocessing() {
     local sedLine=() &&
     local pp &&
     for pp in "${serenity_conf_postprocessing[@]}"; do
-        sedLine+=("-e") &&
-        sedLine+=("$pp")
+        sedLine+=(-e) &&
+        sedLine+=(${pp})
     done
-    sedLine+=('-e')  &&
+    sedLine+=(-e)  &&
     sedLine+=('s/[/\]/-/g') &&                # Force substitution of slashes / backslashes
     for arg; do
-        echo "$arg" | sed -r "${sedLine[@]}"
+        echo ${arg} | sed -r "${sedLine[@]}"
     done
 }
 
@@ -100,13 +101,13 @@ serenity.steps.formatting() {
     local fields=() &&
     local c &&
 
-    associations["t"]="${1}" &&
-    associations["s"]="${2/#*(0)/}" &&
-    associations["e"]="${3/#*(0)/}" &&
-    associations["n"]="${4}" &&
+    associations[t]=${1} &&
+    associations[s]=${2/#*(0)/} &&
+    associations[e]=${3/#*(0)/} &&
+    associations[n]=${4} &&
 
-    for c in $(serenity.tools.characters "$serenity_conf_formatting_associations"); do
-        fields+=("""${associations["${c}"]}""")
+    for c in $(serenity.tools.characters ${serenity_conf_formatting_associations}); do
+        fields+=(${associations[${c}]})
     done &&
 
     printf "$serenity_conf_formatting_format" "${fields[@]}"
@@ -114,13 +115,13 @@ serenity.steps.formatting() {
 
 serenity.steps.extension() {
     local ext=""
-    [[ "$2" =~ ^.*\..*$ ]] && ext=".${2##*.}"
-    echo "$1$ext"
+    [[ ${2} =~ ^.*\..*$ ]] && ext=.${2##*.}
+    echo ${1}${ext}
 }
 
 serenity.steps.move() {
-    mkdir -p """$(dirname "$2")""" &&
-    mv "${serenity_conf_mv_args[@]}" "$1" "$2"
+    mkdir -p "$(dirname ${2})" &&
+    mv ${serenity_conf_mv_args[@]} ${1} ${2}
 }
 
 serenity.steps() {
@@ -130,11 +131,11 @@ serenity.steps() {
     local postProcessedTokens &&
     local formattedName &&
     local finalName &&
-    local fileName="""$(basename "$1")""" &&
+    local fileName="$(basename ${1})" &&
 
-    preProcessedName="""$(serenity.steps.preprocessing "$fileName")""" &&
+    preProcessedName="$(serenity.steps.preprocessing ${fileName})" &&
 #     printf "Pre-processed filename: %s\n" "$preProcessedName" &&
-    rawTokens="""$(serenity.steps.tokenizing "$preProcessedName")""" &&
+    rawTokens="$(serenity.steps.tokenizing ${preProcessedName})" &&
 #     printf "$? Raw tokens:\n%s\n" "$rawTokens" &&
     refinedTokens="$(serenity.steps.refining $rawTokens)" &&
 #     printf "Refined tokens:\n%s\n" "$refinedTokens" &&
@@ -142,18 +143,18 @@ serenity.steps() {
 #     printf "Post-processed tokens:\n%s\n" "$postProcessedTokens" &&
     formattedName="$(serenity.steps.formatting $postProcessedTokens)" &&
 #     printf "Formatted name: %s\n" "$formattedName" &&
-    finalName="""$(serenity.steps.extension "$formattedName" "$fileName")""" &&
+    finalName="$(serenity.steps.extension ${formattedName} ${fileName})" &&
 #     printf "Final name: %s\n" "$finalName" &&
-    if [ ! "$serenity_conf_dry_run" ]; then
-        serenity.steps.move "$1" "$serenity_conf_output_prefix$finalName"
+    if [ ! ${serenity_conf_dry_run} ]; then
+        serenity.steps.move ${1} "$(readlink -f ${serenity_conf_output_prefix})/${finalName}"
     else
-        echo "$finalName"
+        echo ${finalName}
     fi
 }
 
 serenity.showHelp() {
     cat << EOF
-Usage: $serenity_env_executable [OPTION...] FILE...
+Usage: ${serenity_env_executable} [OPTION...] FILE...
 
 Options and arguments:
 
@@ -174,20 +175,20 @@ EOF
 serenity.run() {
     local f
     for f; do
-        serenity.steps "$f" || return 1
+        serenity.steps ${f} || return 1
     done
 }
 
 serenity.list() {
     local i
-    case "$serenity_conf_list" in
+    case ${serenity_conf_list} in
         "preprocessing")
             for i in "${serenity_conf_preprocessing[@]}"; do
-                echo "$i"
+                echo ${i}
             done;;
         "postprocessing")
             for i in "${serenity_conf_postprocessing[@]}"; do
-                echo "$i"
+                echo ${i}
             done;;
         "tokenizers")
             for i in "${!serenity_conf_tokenizers_regex[@]}"; do
@@ -196,13 +197,13 @@ serenity.list() {
             done;;
         "backends")
             for i in "${serenity_conf_backends[@]}"; do
-                echo "$i"
+                echo ${i}
             done;;
         "formatting")
-            echo "$serenity_conf_formatting_format"
-            echo "$serenity_conf_formatting_associations";;
+            echo ${serenity_conf_formatting_format}
+            echo ${serenity_conf_formatting_associations};;
         *)
-            echo "$serenity_conf_list is not a valid parameter." >&2
+            echo "${serenity_conf_list} is not a valid parameter." >&2
             return 1;;
     esac
 }
@@ -221,7 +222,7 @@ serenity.main() {
         case "$opt" in
             d) serenity_conf_dry_run="0";;
             l)
-                serenity_conf_list="$OPTARG"
+                serenity_conf_list=${OPTARG}
                 action="list";;
             o) serenity_conf_output_prefix="$OPTARG";;
             f) serenity_conf_mv_args+=(-f);;
@@ -234,10 +235,10 @@ serenity.main() {
     shift $(($OPTIND - 1))
     (($# < 1)) && [ "$action" = "run" ] && action="help"
 
-    local OLD_IFS="$IFS"
+    local OLD_IFS=${IFS}
     IFS=$'\n'
-    ${actions[$action]} "$@"
+    ${actions[$action]} ${@}
     local errorCode=$?
-    IFS="$OLD_IFS"
+    IFS=${OLD_IFS}
     return $errorCode
 }
