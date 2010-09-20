@@ -24,20 +24,20 @@ serenity.backends.tvrage.extractShowName() {
 
 serenity.backends.tvrage.extractEpisodeName() {
     local r &&
-    r=$(echo "$1" | grep "^Episode Info@") &&
-    echo "$r" | cut --delimiter="^" --fields=2
+    r=$(echo ${1} | grep "^Episode Info@") &&
+    echo ${r} | cut --delimiter="^" --fields=2
 }
 
 serenity.backends.tvrage() {
-    local showName="""$(serenity.tools.urlEncode "$1")""" &&
-    local seasonNb="""$(serenity.tools.urlEncode "$2")""" &&
-    local episodeNb="""$(serenity.tools.urlEncode "$3")""" &&
+    local showName="$(serenity.tools.urlEncode ${1})" &&
+    local seasonNb="$(serenity.tools.urlEncode ${2})" &&
+    local episodeNb="$(serenity.tools.urlEncode ${3})" &&
     local request &&
-    request="""$(echo "${serenity_backends_tvrage_REQUEST_PATTERN}" | sed -e "s/%SHOW_NAME%/$showName/" -e "s/%SEASON_NB%/$seasonNb/" -e "s/%EPISODE_NB%/$episodeNb/")""" &&
+    request="""$(echo ${serenity_backends_tvrage_REQUEST_PATTERN} | sed -e "s/%SHOW_NAME%/$showName/;s/%SEASON_NB%/$seasonNb/;s/%EPISODE_NB%/$episodeNb/")""" &&
     local response &&
-    response="""$(curl -s "$request")""" &&
-    echo """$(serenity.backends.tvrage.extractShowName "$response")""" &&
-    echo "$2" &&
-    echo "$3" &&
-    echo """$(serenity.backends.tvrage.extractEpisodeName "$response")"""
+    response="$(curl -s ${request})" &&
+    echo "$(serenity.backends.tvrage.extractShowName ${response})" &&
+    echo ${2} &&
+    echo ${3} &&
+    echo "$(serenity.backends.tvrage.extractEpisodeName ${response})"
 }
