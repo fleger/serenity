@@ -6,7 +6,7 @@ It is entirely written in Bash. Output filenames can be customized.
 
 Installation
 ============
-Dependancies
+Dependencies
 ------------
 - bash >= 4.0
 - curl
