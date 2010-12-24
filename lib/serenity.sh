@@ -16,6 +16,8 @@
 
 shopt -s extglob
 
+. ${serenity_env_lib}/debug.sh || exit 1
+. ${serenity_env_lib}/nakedconf.sh || exit 1
 . ${serenity_env_lib}/tools.sh || exit 1
 
 serenity.loadConfig() {
@@ -35,6 +37,7 @@ serenity.loadConfig() {
     done &&
     ! $alreadyLoaded &&
     loadedFiles+=(${f}) &&
+    serenity.debug.debug "Loading configuration file $f" &&
     . ${f}
   done
 }
@@ -43,6 +46,7 @@ serenity.loadBackends() {
   local f
   for f in ${serenity_env_lib}/backends/*.sh; do
     [ -f ${f} ] &&
+    serenity.debug.debug "Loading backend $f" &&
     . ${f}
   done
 }
@@ -209,8 +213,8 @@ serenity.list() {
 }
 
 serenity.main() {
-  serenity.loadBackends
   serenity.loadConfig
+  serenity.loadBackends
   local -A actions
   actions["run"]=serenity.run
   actions["help"]=serenity.showHelp

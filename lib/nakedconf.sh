@@ -14,28 +14,13 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-SUBDIRS=backends
-LIBS=serenity.sh tools.sh debug.sh nakedconf.sh
-SOURCES=$(LIBS) Makefile
+# Serenity naked configuration file
 
-.PHONY: all, install, clean, uninstall, archive
-
-all:
-	for i in $(SUBDIRS); do cd $$i; $(MAKE) $@; done
-
-install:
-	$(INSTALL) $(INSTALLDIRFLAGS) "$(DESTDIR)$(LIBDIR)"
-	$(INSTALL) $(INSTALLFLAGS) -t "$(DESTDIR)$(LIBDIR)" $(LIBS)
-	for i in $(SUBDIRS); do cd $$i; $(MAKE) $@; done
-	
-clean: ;
-
-uninstall:
-	-for i in $(SUBDIRS); do cd $$i; $(MAKE) $@; done
-	-for i in $(LIBS); do $(RM) "$(DESTDIR)$(LIBDIR)"/$$i; done
-	-$(RMDIR) "$(DESTDIR)$(LIBDIR)"
-
-archive:
-	$(INSTALL) $(INSTALLDIRFLAGS) "$(TARDIR)"
-	$(INSTALL) $(INSTALLFLAGS) -t "$(TARDIR)" $(SOURCES)
-	for i in $(SUBDIRS); do cd $$i; $(MAKE) "TARDIR=$(TARDIR)/$$i" $@; done
+serenity_conf_preprocessing=()
+serenity_conf_tokenizers_regex=()
+serenity_conf_tokenizers_associations=()
+serenity_conf_backends=("dummy")
+serenity_conf_postprocessing=()
+serenity_conf_formatting_format=""
+serenity_conf_formatting_associations=""
+serenity_conf_verbosity=$serenity_debug_quiet
