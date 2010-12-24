@@ -85,6 +85,7 @@ serenity.steps.refining() {
   local backend &&
   for backend in "${serenity_conf_backends[@]}"; do
     serenity.backends.$backend $@ &&
+    serenity.debug.debug "Refinement successful" &&
     return 0
   done
   return 1

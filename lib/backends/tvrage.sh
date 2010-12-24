@@ -19,12 +19,14 @@ readonly serenity_backends_tvrage_REQUEST_PATTERN="http://services.tvrage.com/to
 serenity.backends.tvrage.extractShowName() {
   local r &&
   r="""$(echo "$1" | grep "^Show Name@")""" &&
+  serenity.debug.debug "TVRage show name extracted" &&
   echo "$r" | sed -e "s/^Show Name@//"
 }
 
 serenity.backends.tvrage.extractEpisodeName() {
   local r &&
   r="""$(echo "${1}" | grep "^Episode Info@")""" &&
+  serenity.debug.debug "TVRage episode name extracted" &&
   echo "${r}" | cut --delimiter="^" --fields=2
 }
 
@@ -33,17 +35,24 @@ serenity.backends.tvrage() {
   local showName="""$(serenity.tools.urlEncode "${1}")""" &&
   local seasonNb="""$(serenity.tools.urlEncode "${2}")""" &&
   local episodeNb="""$(serenity.tools.urlEncode "${3}")""" &&
+  local episodeName
+
   local request &&
   request="""$(echo "${serenity_backends_tvrage_REQUEST_PATTERN}" | sed -e "s/%SHOW_NAME%/$showName/;s/%SEASON_NB%/$seasonNb/;s/%EPISODE_NB%/$episodeNb/")""" &&
   serenity.debug.debug "TVRage request:" &&
   serenity.debug.debug $request &&
+
   local response &&
   response="""$(curl -s "${request}")""" &&
   serenity.debug.debug "TVRage response:" &&
   serenity.debug.debug $response &&
-  echo """$(serenity.backends.tvrage.extractShowName "${response}")""" &&
+
+  showName="""$(serenity.backends.tvrage.extractShowName "${response}")""" &&
+  episodeName="""$(serenity.backends.tvrage.extractEpisodeName "${response}")""" &&
+  
+  echo "$showName" &&
   echo "${2}" &&
   echo "${3}" &&
-  echo """$(serenity.backends.tvrage.extractEpisodeName "${response}")"""
+  echo "$episodeName"
 }
 
