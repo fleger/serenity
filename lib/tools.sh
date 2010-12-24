@@ -17,64 +17,64 @@
 readonly serenity_tools_roman_numeral_regex="[IVXLCDMivxlcdm]+"
 
 serenity.tools.urlEncode() {
-    local arg="$1"
-    while [[ "$arg" =~ ^([0-9a-zA-Z/:_\.\-]*)([^0-9a-zA-Z/:_\.\-])(.*) ]]; do
-        echo -n "${BASH_REMATCH[1]}"
-        printf "%%%X" "'${BASH_REMATCH[2]}'"
-        arg="${BASH_REMATCH[3]}"
-    done
-    # the remaining part
-    echo -n "$arg"
+  local arg="$1"
+  while [[ "$arg" =~ ^([0-9a-zA-Z/:_\.\-]*)([^0-9a-zA-Z/:_\.\-])(.*) ]]; do
+    echo -n "${BASH_REMATCH[1]}"
+    printf "%%%X" "'${BASH_REMATCH[2]}'"
+    arg="${BASH_REMATCH[3]}"
+  done
+  # the remaining part
+  echo -n "$arg"
 }
 
 serenity.tools.urlDecode() {
-    local arg="$1"
-    local i="0"
-    while [ "$i" -lt ${#arg} ]; do
-        local c0=${arg:$i:1}
-        if [ "x$c0" = "x%" ]; then
-            local c1=${arg:$((i+1)):1}
-            local c2=${arg:$((i+2)):1}
-            printf "\x$c1$c2"
-            i=$((i+3))
-        else
-            echo -n "$c0"
-            i=$((i+1))
-        fi
-    done
+  local arg="$1"
+  local i="0"
+  while [ "$i" -lt ${#arg} ]; do
+    local c0=${arg:$i:1}
+    if [ "x$c0" = "x%" ]; then
+      local c1=${arg:$((i+1)):1}
+      local c2=${arg:$((i+2)):1}
+      printf "\x$c1$c2"
+      i=$((i+3))
+    else
+      echo -n "$c0"
+      i=$((i+1))
+    fi
+  done
 }
 
 serenity.tools.characters() {
-    local arg="$1"
-    local i=-1
-    while (( ++i < ${#arg} )); do
-        echo "${arg:$i:1}"
-    done
+  local arg="$1"
+  local i=-1
+  while (( ++i < ${#arg} )); do
+    echo "${arg:$i:1}"
+  done
 }
 
 serenity.tools.romanToArabic() {
-    local -A value
-    value=([M]=1000
-            [D]=500
-            [C]=100
-            [L]=50
-            [X]=10
-            [V]=5
-            [I]=1
-    )
-    local currentDigit
-    local result=0
-    local previousValue=0
-    local currentValue=0
-    for currentDigit in $(serenity.tools.characters "${1^^}"); do
-        currentValue=${value[$currentDigit]}
-        if [ $previousValue -lt $currentValue ]; then
-            result=$((result-previousValue))
-        else
-            result=$((result+previousValue))
-        fi
-        previousValue=$currentValue
-    done
-    result=$((result+previousValue))
-    echo $result
+  local -A value
+  value=( [M]=1000
+          [D]=500
+          [C]=100
+          [L]=50
+          [X]=10
+          [V]=5
+          [I]=1
+  )
+  local currentDigit
+  local result=0
+  local previousValue=0
+  local currentValue=0
+  for currentDigit in $(serenity.tools.characters "${1^^}"); do
+    currentValue=${value[$currentDigit]}
+    if [ $previousValue -lt $currentValue ]; then
+      result=$((result-previousValue))
+    else
+      result=$((result+previousValue))
+    fi
+    previousValue=$currentValue
+  done
+  result=$((result+previousValue))
+  echo $result
 }

@@ -15,8 +15,8 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 serenity.backends.dummy() {
-    echo ${1} &&
-    echo ${2} &&
-    echo ${3} &&
-    echo ""
+  echo ${1} &&
+  echo ${2} &&
+  echo ${3} &&
+  echo ""
 }

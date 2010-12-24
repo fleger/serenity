@@ -24,6 +24,6 @@ serenity_env_lib="%LIBDIR%"
 serenity_env_executable="$0"
 
 if [ -f "${serenity_env_lib}/serenity.sh" ]; then
-    . "${serenity_env_lib}/serenity.sh"
-    serenity.main "$@"
+  . "${serenity_env_lib}/serenity.sh"
+  serenity.main "$@"
 fi
