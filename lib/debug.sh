@@ -22,35 +22,42 @@ readonly serenity_debug_critical=50
 readonly serenity_debug_quiet=99
 
 serenity.debug.echostderr() {
-  echo "$@" >&2
+  local prefix="$1"
+  shift
+  local OLD_IFS="$IFS"
+  IFS=$'\n'
+  for l in "$@"; do
+    echo "$prefix$l" >&2
+  done
+  IFS="$OLD_IFS"
 }
 
 serenity.debug.debug() {
   (( "$serenity_conf_verbosity" <= "$serenity_debug_debug" )) &&
-  serenity.debug.echostderr "[DEBUG] $@"
+  serenity.debug.echostderr "[DEBUG] " "$@"
   true
 }
 
 serenity.debug.info() {
   (( "$serenity_conf_verbosity" <= "$serenity_debug_info" )) &&
-  serenity.debug.echostderr "[INFO] $@"
+  serenity.debug.echostderr "[INFO] " "$@"
   true
 }
 
 serenity.debug.warning() {
   (( "$serenity_conf_verbosity" <= "$serenity_debug_warning" )) &&
-  serenity.debug.echostderr "[WARNING] $@"
+  serenity.debug.echostderr "[WARNING]" "$@"
   true
 }
 
 serenity.debug.error() {
   (( "$serenity_conf_verbosity" <= "$serenity_debug_error" )) &&
-  serenity.debug.echostderr "[ERROR] $@"
+  serenity.debug.echostderr "[ERROR] " "$@"
   true
 }
 
 serenity.debug.critical() {
   (( "$serenity_conf_verbosity" <= "$serenity_debug_critical" )) &&
-  serenity.debug.echostderr "[CRITICAL] $@"
+  serenity.debug.echostderr "[CRITICAL] " "$@"
   true
 }

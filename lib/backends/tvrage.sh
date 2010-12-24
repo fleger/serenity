@@ -29,13 +29,18 @@ serenity.backends.tvrage.extractEpisodeName() {
 }
 
 serenity.backends.tvrage() {
+  serenity.debug.debug "Trying TVRage backend"
   local showName="""$(serenity.tools.urlEncode "${1}")""" &&
   local seasonNb="""$(serenity.tools.urlEncode "${2}")""" &&
   local episodeNb="""$(serenity.tools.urlEncode "${3}")""" &&
   local request &&
   request="""$(echo "${serenity_backends_tvrage_REQUEST_PATTERN}" | sed -e "s/%SHOW_NAME%/$showName/;s/%SEASON_NB%/$seasonNb/;s/%EPISODE_NB%/$episodeNb/")""" &&
+  serenity.debug.debug "TVRage request:" &&
+  serenity.debug.debug $request &&
   local response &&
   response="""$(curl -s "${request}")""" &&
+  serenity.debug.debug "TVRage response:" &&
+  serenity.debug.debug $response &&
   echo """$(serenity.backends.tvrage.extractShowName "${response}")""" &&
   echo "${2}" &&
   echo "${3}" &&

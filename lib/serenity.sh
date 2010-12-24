@@ -142,17 +142,17 @@ serenity.steps() {
   local fileName="$(basename ${1})" &&
 
   preProcessedName="$(serenity.steps.preprocessing ${fileName})" &&
-#     printf "Pre-processed filename: %s\n" "$preProcessedName" &&
+  serenity.debug.debug "Pre-processed filename: $preProcessedName" &&
   rawTokens="$(serenity.steps.tokenizing ${preProcessedName})" &&
-#     printf "$? Raw tokens:\n%s\n" "$rawTokens" &&
+  serenity.debug.debug "Raw tokens: " $rawTokens &&
   refinedTokens="$(serenity.steps.refining $rawTokens)" &&
-#     printf "Refined tokens:\n%s\n" "$refinedTokens" &&
+  serenity.debug.debug "Refined tokens: " $refinedTokens &&
   postProcessedTokens="$(serenity.steps.postprocessing $refinedTokens)" &&
-#     printf "Post-processed tokens:\n%s\n" "$postProcessedTokens" &&
+  serenity.debug.debug "Post-processed tokens: " $postProcessedTokens &&
   formattedName="$(serenity.steps.formatting $postProcessedTokens)" &&
-#     printf "Formatted name: %s\n" "$formattedName" &&
+  serenity.debug.debug "Formatted name: " $formattedName &&
   finalName="$(serenity.steps.extension ${formattedName} ${fileName})" &&
-#     printf "Final name: %s\n" "$finalName" &&
+  serenity.debug.debug "Final name: " $finalName &&
   if [ ! ${serenity_conf_dry_run} ]; then
     serenity.steps.move ${1} "$(readlink -f ${serenity_conf_output_prefix})/${finalName}"
   else
