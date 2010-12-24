@@ -24,3 +24,5 @@ serenity_conf_postprocessing=()
 serenity_conf_formatting_format=""
 serenity_conf_formatting_associations=""
 serenity_conf_verbosity=$serenity_debug_quiet
+serenity_conf_output_prefix="."
+serenity_conf_mv_args=()

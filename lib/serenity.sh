@@ -17,12 +17,16 @@
 shopt -s extglob
 
 . ${serenity_env_lib}/debug.sh || exit 1
-. ${serenity_env_lib}/nakedconf.sh || exit 1
-. ${serenity_env_lib}/tools.sh || exit 1
+
+serenity.crash() {
+  serenity.debug.critical "$@"
+  exit 1
+}
+
+. ${serenity_env_lib}/nakedconf.sh || serenity.crash "Failed to load ${serenity_env_lib}/nakedconf.sh"
+. ${serenity_env_lib}/tools.sh || serenity.crash "Failed to load ${serenity_env_lib}/tools.sh"
 
 serenity.loadConfig() {
-  serenity_conf_output_prefix="."
-  serenity_conf_mv_args=()
   local -a loadedFiles
   local f
   local i
