@@ -43,7 +43,7 @@ serenity.backends.tvrage() {
   serenity.debug.debug $request &&
 
   local response &&
-  response="""$(curl -s "${request}")""" &&
+  response="""$(curl -s "${request}" | asc2xml)""" &&
   serenity.debug.debug "TVRage response:" &&
   serenity.debug.debug $response &&
 

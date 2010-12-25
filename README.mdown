@@ -1,6 +1,6 @@
 What is Serenity?
 =================
-Serenity is a tool to automaticaly rename your favourites shows.
+Serenity is a tool to automaticaly rename your favourite TV shows.
 It can work both on video files or subtitle files.
 It is entirely written in Bash. Output filenames can be customized.
 
@@ -9,29 +9,30 @@ Installation
 Dependencies
 ------------
 - bash >= 4.0
-- curl
+- curl (for TVRage backend)
+- html-xml-utils (for TVRage backend)
 - make (build)
 
 Procedure
 ---------
 Default installation goes into /usr/local.
 
-    make clean
-    make
-    make install
+  make clean
+  make
+  make install
 
 Uninstallation
 --------------
-    make uninstall
+  make uninstall
 
 Source archive
 --------------
-    make archive
+  make archive
 
 For packagers
 -------------
-    make PREFIX=/usr
-    make PREFIX=/usr DESTDIR="$pkgdir" install
+  make PREFIX=/usr
+  make PREFIX=/usr DESTDIR="$pkgdir" install
 
 Configuration
 =============
