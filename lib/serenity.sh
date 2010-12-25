@@ -38,7 +38,7 @@ serenity.loadConfig() {
     for i in "${loadedFiles[@]}"; do
       [[ "${i}" == "${f}" ]] &&
       alreadyLoaded=true &&
-      serenity.debug.debug "$f is alreadyLoaded" &&
+      serenity.debug.debug "$f is alreadyLoaded"
     done &&
     ! $alreadyLoaded &&
     loadedFiles+=("${f}") &&
