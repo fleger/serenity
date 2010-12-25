@@ -15,7 +15,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 BACKENDSDIR=$(LIBDIR)/backends
-BACKENDS=tvrage.sh
+BACKENDS=tvrage.sh dummy.sh
 SOURCES=$(BACKENDS) Makefile
 
 .PHONY: all, install, clean, uninstall, archive
