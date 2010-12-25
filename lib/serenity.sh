@@ -43,6 +43,7 @@ serenity.loadConfig() {
       serenity.debug.debug "$f is alreadyLoaded"
     done &&
     ! $alreadyLoaded &&
+    serenity.debug.debug "$f is not alreadyLoaded" &&
     loadedFiles+=("${f}") &&
     serenity.debug.debug "Loading configuration file $f" &&
     . "${f}"
