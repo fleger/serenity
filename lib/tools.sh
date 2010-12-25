@@ -78,3 +78,15 @@ serenity.tools.romanToArabic() {
   result=$((result+previousValue))
   echo $result
 }
+
+serenity.tools.contains() {
+  local item
+  local match="$1"
+  shift
+
+  for item; do
+    [ "$item" = "$match" ] &&
+    return 0
+  done
+  return 1
+}

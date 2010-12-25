@@ -29,20 +29,12 @@ serenity.crash() {
 serenity.loadConfig() {
   local -a loadedFiles
   local f
-  local i
-  local alreadyLoaded
   for f in "${serenity_env_conf[@]}"; do
     serenity.debug.debug "Trying to load $f" &&
     [ -f "$f" ] &&
-    serenity.debug.debug "$f is a file" &&
-    alreadyLoaded=false &&
     f="$(readlink -f ${f})" &&
-    for i in "${loadedFiles[@]}"; do
-      [[ "${i}" == "${f}" ]] &&
-      alreadyLoaded=true &&
-      serenity.debug.debug "$f is alreadyLoaded"
-    done &&
-    ! $alreadyLoaded &&
+    serenity.debug.debug "$f is a file" &&
+    ! serenity.tools.contains "$f" "${loadedFiles[@]}" &&
     serenity.debug.debug "$f is not alreadyLoaded" &&
     loadedFiles+=("${f}") &&
     serenity.debug.debug "Loading configuration file $f" &&
