@@ -32,7 +32,9 @@ serenity.loadConfig() {
   local i
   local alreadyLoaded
   for f in "${serenity_env_conf[@]}"; do
+    serenity.debug.debug "Trying to load $f" &&
     [ -f "$f" ] &&
+    serenity.debug.debug "$f is a file" &&
     alreadyLoaded=false &&
     f="$(readlink -f ${f})" &&
     for i in "${loadedFiles[@]}"; do

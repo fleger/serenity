@@ -20,6 +20,7 @@ serenity_env_conf=("%CONFDIR%/serenity.conf"
                    "$XDG_DATA_HOME/serenity/serenity.conf"
                    "$PWD/serenity.conf"
                    )
+                   
 serenity_env_lib="%LIBDIR%"
 serenity_env_executable="$0"
 
