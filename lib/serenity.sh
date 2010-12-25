@@ -36,13 +36,14 @@ serenity.loadConfig() {
     alreadyLoaded=false &&
     f="$(readlink -f ${f})" &&
     for i in "${loadedFiles[@]}"; do
-      [[ ${i} == ${f} ]] &&
-      alreadyLoaded=true
+      [[ "${i}" == "${f}" ]] &&
+      alreadyLoaded=true &&
+      serenity.debug.debug "$f is alreadyLoaded" &&
     done &&
     ! $alreadyLoaded &&
-    loadedFiles+=(${f}) &&
+    loadedFiles+=("${f}") &&
     serenity.debug.debug "Loading configuration file $f" &&
-    . ${f}
+    . "${f}"
   done
 }
 
