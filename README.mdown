@@ -16,23 +16,22 @@ Dependencies
 Procedure
 ---------
 Default installation goes into /usr/local.
-
-  make clean
-  make
-  make install
+    make clean
+    make
+    make install
 
 Uninstallation
 --------------
-  make uninstall
+    make uninstall
 
 Source archive
 --------------
-  make archive
+    make archive
 
 For packagers
 -------------
-  make PREFIX=/usr
-  make PREFIX=/usr DESTDIR="$pkgdir" install
+    make PREFIX=/usr
+    make PREFIX=/usr DESTDIR="$pkgdir" install
 
 Configuration
 =============
