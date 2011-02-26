@@ -38,7 +38,7 @@ Configuration
 Configuration is merged from 3 bash files:
 
 1.  ./serenity.conf
-2.  $XDG_DATA_HOME/serenity/serenity.conf
+2.  $XDG_CONFIG_HOME/serenity/serenity.conf
 3.  /etc/serenity.conf
 
 See /etc/serenity.conf for further information.
