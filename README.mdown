@@ -15,7 +15,7 @@ Dependencies
 
 Procedure
 ---------
-Default installation go into /usr/local.
+Default installation goes into /usr/local.
     make clean
     make
     make install
