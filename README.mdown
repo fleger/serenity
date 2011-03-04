@@ -15,7 +15,7 @@ Dependencies
 
 Procedure
 ---------
-Default installation goes into /usr/local.
+Default installation go into /usr/local.
     make clean
     make
     make install
@@ -51,4 +51,4 @@ Unpack and run `./serenity-devel`. Configuration is read from serenity.conf only
 
 Backup
 ------
-To prevent serenity from erasing files, use `serenity -b`. You can use the SIMPLE_BACKUP_SUFFIX and VERSION_CONTROL environment variables to fine tune this behaviour (see mv's manpage for further information).
+To prevent serenity from erasing files, use `serenity -b`. You can use the SIMPLE_BACKUP_SUFFIX and VERSION_CONTROL environment variables to fine tune this behaviour (see mv(1) for further information).
