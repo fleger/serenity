@@ -43,19 +43,20 @@ TARNAME=$(NAME)-$(VERSION).tar$(TARFORMAT)
 TARFLAGS=-acf
 
 SUBDIRS=lib
-BINS=serenity
+INS=$(wildcard *.in)
+BINS=$(INS:.in=)
 CONFS=serenity.conf
-SOURCES=serenity.in serenity-devel README.mdown COPYING Makefile $(CONFS)
+SOURCES=$(INS) serenity-devel README.mdown COPYING Makefile $(CONFS)
 
 SUBMAKEFLAGS='DESTDIR=$(DESTDIR)' 'PREFIX=$(PREFIX)' 'CONFDIR=$(CONFDIR)' 'BINDIR=$(BINDIR)' 'LIBDIR=$(LIBDIR)' 'SED=$(SED)' 'INSTALL=$(INSTALL)' 'RM=$(RM)' 'RMDIR=$(RMDIR)' 'INSTALLBINFLAGS=$(INSTALLBINFLAGS)' 'INSTALLFLAGS=$(INSTALLFLAGS)' 'INSTALLDIRFLAGS=$(INSTALLDIRFLAGS)' 'NAME=$(NAME)' 'VERSION=$(VERSION)'
 
 .PHONY: all, install, clean, uninstall, really-clean, archive
 
 all: $(BINS)
-	for i in $(SUBDIRS); do cd $$i; $(MAKE) $(SUBMAKEFLAGS) $@; done
+	for i in $(SUBDIRS); do cd $$i; $(MAKE) $(SUBMAKEFLAGS) $@; cd -; done
 
-serenity: serenity.in
-	$(SED) -e "s/%LIBDIR%/$(subst /,\/,$(LIBDIR))/g" -e "s/%CONFDIR%/$(subst /,\/,$(CONFDIR))/g" $? > $@
+%: %.in
+	$(SED) -e "s/@LIBDIR@/$(subst /,\/,$(LIBDIR))/g" -e "s/@CONFDIR@/$(subst /,\/,$(CONFDIR))/g" $? > $@
 
 install: all
 	$(INSTALL) $(INSTALLDIRFLAGS) "$(DESTDIR)$(PREFIX)"
@@ -63,15 +64,15 @@ install: all
 	$(INSTALL) $(INSTALLDIRFLAGS) "$(DESTDIR)$(CONFDIR)"
 	$(INSTALL) $(INSTALLBINFLAGS) -t "$(DESTDIR)$(BINDIR)" $(BINS)
 	$(INSTALL) $(INSTALLFLAGS) -t "$(DESTDIR)$(CONFDIR)" $(CONFS)
-	for i in $(SUBDIRS); do cd $$i; $(MAKE) $(SUBMAKEFLAGS) $@; done
+	for i in $(SUBDIRS); do cd $$i; $(MAKE) $(SUBMAKEFLAGS) $@; cd -; done
 
 clean:
 	-$(RM) $(BINS)
 	-$(RM) $(TARNAME)
-	-for i in $(SUBDIRS); do cd $$i; $(MAKE) $(SUBMAKEFLAGS) $@; done
+	-for i in $(SUBDIRS); do cd $$i; $(MAKE) $(SUBMAKEFLAGS) $@; cd -; done
 
 uninstall:
-	-for i in $(SUBDIRS); do cd $$i; $(MAKE) $(SUBMAKEFLAGS) $@; done
+	-for i in $(SUBDIRS); do cd $$i; $(MAKE) $(SUBMAKEFLAGS) $@; cd -; done
 	-for i in $(BINS); do $(RM) "$(DESTDIR)$(BINDIR)"/$$i; done
 	-for i in $(CONFS); do $(RM) "$(DESTDIR)$(CONFDIR)"/$$i; done
 	-$(RMDIR) "$(DESTDIR)$(CONFDIR)"
@@ -82,6 +83,6 @@ really-clean: clean uninstall
 archive:
 	$(INSTALL) $(INSTALLDIRFLAGS) "$(TARDIR)"
 	$(INSTALL) $(INSTALLFLAGS) -t "$(TARDIR)" $(SOURCES)
-	for i in $(SUBDIRS); do cd $$i; $(MAKE) $(SUBMAKEFLAGS) "TARDIR=$(TARDIR)/$$i" $@; done
-	$(TAR) $(TARFLAGS) $(TARNAME) $(TARDIR)
+	for i in $(SUBDIRS); do cd $$i; $(MAKE) $(SUBMAKEFLAGS) "TARDIR=$(TARDIR)/$$i" $@; cd -; done
+	$(TAR) $(TARFLAGS) $(TARNAME) -C $(TARDIR) ../$(shell basename $(TARDIR))
 	$(RM) -r $(TARDIR)

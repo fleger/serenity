@@ -15,27 +15,27 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 SUBDIRS=backends
-LIBS=serenity.sh tools.sh debug.sh nakedconf.sh
+LIBS=$(wildcard *.sh)
 SOURCES=$(LIBS) Makefile
 
 .PHONY: all, install, clean, uninstall, archive
 
 all:
-	for i in $(SUBDIRS); do cd $$i; $(MAKE) $@; done
+	for i in $(SUBDIRS); do cd $$i; $(MAKE) $@; cd -; done
 
 install:
 	$(INSTALL) $(INSTALLDIRFLAGS) "$(DESTDIR)$(LIBDIR)"
 	$(INSTALL) $(INSTALLFLAGS) -t "$(DESTDIR)$(LIBDIR)" $(LIBS)
-	for i in $(SUBDIRS); do cd $$i; $(MAKE) $@; done
+	for i in $(SUBDIRS); do cd $$i; $(MAKE) $@; cd -; done
 	
 clean: ;
 
 uninstall:
-	-for i in $(SUBDIRS); do cd $$i; $(MAKE) $@; done
+	-for i in $(SUBDIRS); do cd $$i; $(MAKE) $@; cd -; done
 	-for i in $(LIBS); do $(RM) "$(DESTDIR)$(LIBDIR)"/$$i; done
 	-$(RMDIR) "$(DESTDIR)$(LIBDIR)"
 
 archive:
 	$(INSTALL) $(INSTALLDIRFLAGS) "$(TARDIR)"
 	$(INSTALL) $(INSTALLFLAGS) -t "$(TARDIR)" $(SOURCES)
-	for i in $(SUBDIRS); do cd $$i; $(MAKE) "TARDIR=$(TARDIR)/$$i" $@; done
+	for i in $(SUBDIRS); do cd $$i; $(MAKE) "TARDIR=$(TARDIR)/$$i" $@; cd -; done

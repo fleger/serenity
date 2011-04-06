@@ -16,12 +16,12 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-serenity_env_conf=("%CONFDIR%/serenity.conf"
+serenity_env_conf=("@CONFDIR@/serenity.conf"
                    "$XDG_CONFIG_HOME/serenity/serenity.conf"
                    "$PWD/serenity.conf"
                    )
                    
-serenity_env_lib="%LIBDIR%"
+serenity_env_lib="@LIBDIR@"
 serenity_env_executable="$0"
 
 if [ -f "${serenity_env_lib}/serenity.sh" ]; then
