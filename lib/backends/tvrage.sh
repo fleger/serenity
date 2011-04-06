@@ -1,5 +1,5 @@
 #    serenity - An automated episode renamer.
-#    Copyright (C) 2010  Florian Léger
+#    Copyright (C) 2010-2011  Florian Léger
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
