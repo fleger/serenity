@@ -16,7 +16,7 @@
 
 DESTDIR=
 PREFIX=/usr/local
-CONFDIR=/etc
+CONFDIR=/usr/local/etc
 BINDIR=$(PREFIX)/bin
 LIBDIR=$(PREFIX)/lib/serenity
 

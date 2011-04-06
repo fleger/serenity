@@ -30,8 +30,8 @@ Source archive
 
 For packagers
 -------------
-    make PREFIX=/usr
-    make PREFIX=/usr DESTDIR="$pkgdir" install
+    make PREFIX=/usr CONFDIR=/etc
+    make PREFIX=/usr CONFDIR=/etc DESTDIR="$pkgdir" install
 
 Configuration
 =============
@@ -39,7 +39,7 @@ Configuration is merged from 3 bash files:
 
 1.  ./serenity.conf
 2.  $XDG_CONFIG_HOME/serenity/serenity.conf
-3.  /etc/serenity.conf
+3.  $CONFDIR/serenity.conf
 
 See /etc/serenity.conf for further information.
 
