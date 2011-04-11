@@ -14,6 +14,8 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+# TVRage QuickInfo backend
+
 readonly serenity_backends_tvrage_REQUEST_PATTERN="http://services.tvrage.com/tools/quickinfo.php?show=%SHOW_NAME%&ep=%SEASON_NB%x%EPISODE_NB%"
 
 serenity.backends.tvrage.extractShowName() {
@@ -43,7 +45,10 @@ serenity.backends.tvrage() {
   serenity.debug.debug $request &&
 
   local response &&
-  response="""$(curl -s "${request}" | asc2xml)""" &&
+  response="""$(curl -s "${request}")""" &&
+  if echo "$response" | grep '&#[0-9]*;' > /dev/null ; then
+    response="""$(echo "$response" | asc2xml)"""
+  fi &&
   serenity.debug.debug "TVRage response:" &&
   serenity.debug.debug $response &&
 
