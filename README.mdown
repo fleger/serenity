@@ -42,12 +42,16 @@ Configuration is merged from 3 bash files:
 2.  $XDG_CONFIG_HOME/serenity/serenity.conf
 3.  $CONFDIR/serenity.conf
 
-See /etc/serenity.conf for further information.
+If serenity has been installed using the make / make installed procedure described earlier, then CONFDIR will be /usr/local/etc.
+
+If serenity has been packaged for your distro, then CONFDIR will most likely be /etc.
+
+See $CONFDIR/serenity.conf for a detailed description of the configuration options.
 
 Tips and tricks
 ===============
-Running without installing
---------------------------
+Running without installing (aka portable mode)
+----------------------------------------------
 Unpack and run `./serenity-devel`. Configuration is read from serenity.conf only.
 
 Backup
