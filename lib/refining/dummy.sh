@@ -1,5 +1,3 @@
-#! /bin/bash
-
 #    serenity - An automated episode renamer.
 #    Copyright (C) 2010-2012  Florian Léger
 #
@@ -16,26 +14,6 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# Launch script (self-contained version)
-
-baseDir="$(dirname "${0}")"
-
-# Configuration file(s)
-readonly -a serenity_env_conf=("${baseDir}/serenity.conf")
-
-# Library path
-readonly serenity_env_lib="${baseDir}/lib"
-
-# Script name
-readonly serenity_env_executable="${0}"
-
-unset baseDir
-
-# Load the main library and call serenity.main
-if [ -f "${serenity_env_lib}/serenity.sh" ]; then
-  . "${serenity_env_lib}/serenity.sh"
-  serenity.main "${@}"
-else
-  echo "ERROR: can't find ${serenity_env_lib}/serenity.sh. Aborting." >&2
-  exit 1
-fi
+serenity.refiningBackends.dummy() {
+  true
+}

@@ -1,5 +1,3 @@
-#! /bin/bash
-
 #    serenity - An automated episode renamer.
 #    Copyright (C) 2010-2012  Florian Léger
 #
@@ -16,26 +14,33 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# Launch script (self-contained version)
+# Dynamic pipelining
 
-baseDir="$(dirname "${0}")"
+# Add a filter to the pipeline definition
+serenity.pipeline.add() {
+  if [ $# -gt 0 ]; then
+    _pipeline+=($#)
+    _pipeline+=("$@")
+  fi
+}
 
-# Configuration file(s)
-readonly -a serenity_env_conf=("${baseDir}/serenity.conf")
+# Consume one filter from the pipeline and move to the next
+serenity.pipeline._consume() {
+  if [ ${#_pipeline[@]} -gt 0 ]; then
+    local nItems=${_pipeline[0]}
+    local -a pipelineCommand=("${_pipeline[@]:1:$nItems}")
+    _pipeline=("${_pipeline[@]:$(( $nItems + 1 ))}")
+    "${pipelineCommand[@]}" | serenity.pipeline._consume
+  else
+    cat
+  fi
+}
 
-# Library path
-readonly serenity_env_lib="${baseDir}/lib"
+# Execute a pipeline definition
+serenity.pipeline.execute() {
+  local -a _pipeline=()
 
-# Script name
-readonly serenity_env_executable="${0}"
+  "${@}"
 
-unset baseDir
-
-# Load the main library and call serenity.main
-if [ -f "${serenity_env_lib}/serenity.sh" ]; then
-  . "${serenity_env_lib}/serenity.sh"
-  serenity.main "${@}"
-else
-  echo "ERROR: can't find ${serenity_env_lib}/serenity.sh. Aborting." >&2
-  exit 1
-fi
+  serenity.pipeline._consume
+}

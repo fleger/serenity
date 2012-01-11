@@ -16,15 +16,24 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-serenity_env_conf=("@CONFDIR@/serenity.conf"
-                   "$XDG_CONFIG_HOME/serenity/serenity.conf"
-                   "$PWD/serenity.conf"
-                   )
-                   
-serenity_env_lib="@LIBDIR@"
-serenity_env_executable="$0"
+# Launch script
 
+# Configuration file(s)
+readonly -a serenity_env_conf=("@CONFDIR@/serenity.conf"
+                               "${XDG_CONFIG_HOME-=${HOME}/.config}/serenity/serenity.conf"
+                               "${PWD}/serenity.conf")
+
+# Library path
+readonly serenity_env_lib="@LIBDIR@"
+
+# Script name
+readonly serenity_env_executable="${0}"
+
+# Load the main library and call serenity.main
 if [ -f "${serenity_env_lib}/serenity.sh" ]; then
   . "${serenity_env_lib}/serenity.sh"
-  serenity.main "$@"
+  serenity.main "${@}"
+else
+  echo "ERROR: can't find ${serenity_env_lib}/serenity.sh. Aborting." >&2
+  exit 1
 fi

@@ -14,19 +14,19 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-readonly serenity_debug_debug=10
-readonly serenity_debug_info=20
-readonly serenity_debug_warning=30
-readonly serenity_debug_error=40
-readonly serenity_debug_critical=50
-readonly serenity_debug_quiet=99
+local -r serenity_debug_debug=10
+local -r serenity_debug_info=20
+local -r serenity_debug_warning=30
+local -r serenity_debug_error=40
+local -r serenity_debug_critical=50
+local -r serenity_debug_quiet=99
 
 serenity.debug.echostderr() {
   local prefix="$1"
   shift
   local OLD_IFS="$IFS"
   IFS=$'\n'
-  for l in "$@"; do
+  for l in $@; do
     echo "$prefix$l" >&2
   done
   IFS="$OLD_IFS"
@@ -46,7 +46,7 @@ serenity.debug.info() {
 
 serenity.debug.warning() {
   (( "$serenity_conf_verbosity" <= "$serenity_debug_warning" )) &&
-  serenity.debug.echostderr "[WARNING]" "$@"
+  serenity.debug.echostderr "[WARNING] " "$@"
   true
 }
 

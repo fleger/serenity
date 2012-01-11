@@ -16,13 +16,28 @@
 
 # Serenity naked configuration file
 
-serenity_conf_preprocessing=()
-serenity_conf_tokenizers_regex=()
-serenity_conf_tokenizers_associations=()
-serenity_conf_backends=("dummy")
-serenity_conf_postprocessing=()
-serenity_conf_formatting_format=""
-serenity_conf_formatting_associations=""
-serenity_conf_verbosity=$serenity_debug_quiet
-serenity_conf_output_prefix="."
-serenity_conf_mv_args=()
+local -a serenity_conf__tokenizers=()
+local -a serenity_conf__tokenizerLengths=()
+
+serenity.conf.addTokenizer() {
+  if [ "$#" -gt 0 ]; then
+    serenity_conf__tokenizerLengths+=("${#}")
+    serenity_conf__tokenizers+=("${@}")
+  else
+    serenity.debug.error "serenity.conf.addTokenizer: missing armguments"
+    return 1
+  fi
+}
+
+local serenity_conf_globalPreprocessing=''
+local -A serenity_conf_tokenDefaults=()
+local -A serenity_conf_tokenPreprocessing=()
+local -a serenity_conf_refiningBackends=('dummy')
+local -A serenity_conf_tokenPostprocessing=()
+local -a serenity_conf_formatting=()
+local serenity_conf_globalPostprocessing=''
+local serenity_conf_keepExtension=''
+
+local serenity_conf_dryRun=1
+local serenity_conf_outputPrefix="."
+local -a serenity_conf_mvArgs=()

@@ -14,23 +14,23 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-BACKENDSDIR=$(LIBDIR)/backends
-BACKENDS=$(wildcard *.sh)
-SOURCES=$(BACKENDS) Makefile
+TARGETDIR=$(LIBDIR)/actions
+SCRIPTS=$(wildcard *.sh)
+SOURCES=$(SCRIPTS) Makefile
 
 .PHONY: all, install, clean, uninstall, archive
 
 all: ;
 
 install:
-	$(INSTALL) $(INSTALLDIRFLAGS) "$(DESTDIR)$(BACKENDSDIR)"
-	$(INSTALL) $(INSTALLFLAGS) -t "$(DESTDIR)$(BACKENDSDIR)" $(BACKENDS)
+	$(INSTALL) $(INSTALLDIRFLAGS) "$(DESTDIR)$(TARGETDIR)"
+	$(INSTALL) $(INSTALLFLAGS) -t "$(DESTDIR)$(TARGETDIR)" $(SCRIPTS)
 
 clean: ;
 
 uninstall:
-	-for i in $(BACKENDS); do $(RM) "$(DESTDIR)$(BACKENDSDIR)"/$$i; done
-	-$(RMDIR) "$(DESTDIR)$(BACKENDSDIR)"
+	-for i in $(SCRIPTS); do $(RM) "$(DESTDIR)$(TARGETDIR)"/$$i; done
+	-$(RMDIR) "$(DESTDIR)$(TARGETDIR)"
 
 archive:
 	$(INSTALL) $(INSTALLDIRFLAGS) "$(TARDIR)"

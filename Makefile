@@ -53,7 +53,7 @@ SUBMAKEFLAGS='DESTDIR=$(DESTDIR)' 'PREFIX=$(PREFIX)' 'CONFDIR=$(CONFDIR)' 'BINDI
 .PHONY: all, install, clean, uninstall, really-clean, archive
 
 all: $(BINS)
-	for i in $(SUBDIRS); do cd $$i; $(MAKE) $(SUBMAKEFLAGS) $@; cd -; done
+	for i in $(SUBDIRS); do pushd $$i; $(MAKE) $(SUBMAKEFLAGS) $@; popd; done
 
 %: %.in
 	$(SED) -e "s/@LIBDIR@/$(subst /,\/,$(LIBDIR))/g" -e "s/@CONFDIR@/$(subst /,\/,$(CONFDIR))/g" $? > $@
@@ -64,15 +64,15 @@ install: all
 	$(INSTALL) $(INSTALLDIRFLAGS) "$(DESTDIR)$(CONFDIR)"
 	$(INSTALL) $(INSTALLBINFLAGS) -t "$(DESTDIR)$(BINDIR)" $(BINS)
 	$(INSTALL) $(INSTALLFLAGS) -t "$(DESTDIR)$(CONFDIR)" $(CONFS)
-	for i in $(SUBDIRS); do cd $$i; $(MAKE) $(SUBMAKEFLAGS) $@; cd -; done
+	for i in $(SUBDIRS); do pushd $$i; $(MAKE) $(SUBMAKEFLAGS) $@; popd; done
 
 clean:
 	-$(RM) $(BINS)
 	-$(RM) $(TARNAME)
-	-for i in $(SUBDIRS); do cd $$i; $(MAKE) $(SUBMAKEFLAGS) $@; cd -; done
+	-for i in $(SUBDIRS); do pushd $$i; $(MAKE) $(SUBMAKEFLAGS) $@; popd; done
 
 uninstall:
-	-for i in $(SUBDIRS); do cd $$i; $(MAKE) $(SUBMAKEFLAGS) $@; cd -; done
+	-for i in $(SUBDIRS); do pushd $$i; $(MAKE) $(SUBMAKEFLAGS) $@; popd; done
 	-for i in $(BINS); do $(RM) "$(DESTDIR)$(BINDIR)"/$$i; done
 	-for i in $(CONFS); do $(RM) "$(DESTDIR)$(CONFDIR)"/$$i; done
 	-$(RMDIR) "$(DESTDIR)$(CONFDIR)"
@@ -83,6 +83,6 @@ really-clean: clean uninstall
 archive:
 	$(INSTALL) $(INSTALLDIRFLAGS) "$(TARDIR)"
 	$(INSTALL) $(INSTALLFLAGS) -t "$(TARDIR)" $(SOURCES)
-	for i in $(SUBDIRS); do cd $$i; $(MAKE) $(SUBMAKEFLAGS) "TARDIR=$(TARDIR)/$$i" $@; cd -; done
+	for i in $(SUBDIRS); do pushd $$i; $(MAKE) $(SUBMAKEFLAGS) "TARDIR=$(TARDIR)/$$i" $@; popd; done
 	$(TAR) $(TARFLAGS) $(TARNAME) -C $(TARDIR) ../$(shell basename $(TARDIR))
 	$(RM) -r $(TARDIR)

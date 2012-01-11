@@ -14,10 +14,18 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-serenity.backends.dummy() {
-  serenity.debug.debug "Trying dummy backend"
-  echo ${1} &&
-  echo ${2} &&
-  echo ${3} &&
-  echo ""
+serenity.tokenizers.reMatch() {
+  local regex="${1}"
+  shift
+  local inputBuffer="$(cat)"
+  [[ "$inputBuffer" =~ $regex ]] || {
+    serenity.debug.debug "REMatch: $regex doesn't' match $inputBuffer"
+    return 1
+  }
+  serenity.debug.debug "REMatch: $regex matches $inputBuffer"
+  local token
+  for token in "${BASH_REMATCH[@]:1}"; do
+    serenity.tokens.set "${1}" "${token}"
+    shift
+  done
 }

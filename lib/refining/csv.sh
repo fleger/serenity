@@ -14,10 +14,13 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-serenity.backends.csv() {
-  serenity.debug.debug "Trying CSV backend"
+local serenity_conf_backend_csv_file="serenity.csv"
+local serenity_conf_backend_csv_separator=";"
+local -a serenity_conf_backend_csv_format=()
+
+serenity.refiningBackends.csv() {
   if [ -f "$serenity_conf_backend_csv_file" ]; then
-    serenity.debug.debug "CSV: Reading $serenity_conf_backend_csv_file"
+    serenity.debug.debug "CSV: reading $serenity_conf_backend_csv_file"
     local line
     local token
     local counter
@@ -25,19 +28,21 @@ serenity.backends.csv() {
     while read line; do
       counter=0
       items=()
-      serenity.debug.debug "CSV: Reading line $line"
+      serenity.debug.debug "CSV: reading line $line"
       while read -d "$serenity_conf_backend_csv_separator" token; do
-        serenity.debug.debug "CSV: Reading token $token"
+        serenity.debug.debug "CSV: reading token $token"
         items[${serenity_conf_backend_csv_format[$counter]}]="$token"
         counter=$(($counter + 1))
-      done < <(echo "$line$serenity_conf_backend_csv_separator") # Hack: add separator at the end of the line
-      [ "x${items[season]}" = "x$2" ] &&
-      [ "x${items[episode]}" = "x$3" ] &&
-      echo ${items[show]} &&
-      echo ${items[season]} &&
-      echo ${items[episode]} &&
-      echo ${items[title]} &&
-      return 0
+      done <<< "$line$serenity_conf_backend_csv_separator" # Hack: add separator at the end of the line
+      [ "x${items[season]}" = "x$(serenity.tokens.get season)" ] &&
+      [ "x${items[episode]}" = "x$(serenity.tokens.get episode)" ] && {
+        serenity.debug.debug "CSV: line matches season and episode"
+        local key
+        for key in "${!items[@]}"; do
+          serenity.tokens.set "${key}" "${items["${key}"]}"
+        done
+        return 0
+      }
     done < "$serenity_conf_backend_csv_file"
   else
     serenity.debug.debug "CSV: $serenity_conf_backend_csv_file doesn't exist"

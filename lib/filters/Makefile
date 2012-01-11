@@ -1,5 +1,3 @@
-#! /bin/bash
-
 #    serenity - An automated episode renamer.
 #    Copyright (C) 2010-2012  Florian Léger
 #
@@ -16,26 +14,24 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# Launch script (self-contained version)
+TARGETDIR=$(LIBDIR)/filters
+SCRIPTS=$(wildcard *.sh)
+SOURCES=$(SCRIPTS) Makefile
 
-baseDir="$(dirname "${0}")"
+.PHONY: all, install, clean, uninstall, archive
 
-# Configuration file(s)
-readonly -a serenity_env_conf=("${baseDir}/serenity.conf")
+all: ;
 
-# Library path
-readonly serenity_env_lib="${baseDir}/lib"
+install:
+	$(INSTALL) $(INSTALLDIRFLAGS) "$(DESTDIR)$(TARGETDIR)"
+	$(INSTALL) $(INSTALLFLAGS) -t "$(DESTDIR)$(TARGETDIR)" $(SCRIPTS)
 
-# Script name
-readonly serenity_env_executable="${0}"
+clean: ;
 
-unset baseDir
+uninstall:
+	-for i in $(SCRIPTS); do $(RM) "$(DESTDIR)$(TARGETDIR)"/$$i; done
+	-$(RMDIR) "$(DESTDIR)$(TARGETDIR)"
 
-# Load the main library and call serenity.main
-if [ -f "${serenity_env_lib}/serenity.sh" ]; then
-  . "${serenity_env_lib}/serenity.sh"
-  serenity.main "${@}"
-else
-  echo "ERROR: can't find ${serenity_env_lib}/serenity.sh. Aborting." >&2
-  exit 1
-fi
+archive:
+	$(INSTALL) $(INSTALLDIRFLAGS) "$(TARDIR)"
+	$(INSTALL) $(INSTALLFLAGS) -t "$(TARDIR)" $(SOURCES)

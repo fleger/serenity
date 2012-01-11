@@ -1,0 +1,56 @@
+#    serenity - An automated episode renamer.
+#    Copyright (C) 2010-2012  Florian Léger
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+# TVRage QuickInfo refining backend
+
+serenity.refiningBackends.tvrage() {
+  local -r requestFormat="http://services.tvrage.com/tools/quickinfo.php?show=%s&ep=%dx%d"
+  local -ar fieldTypes=(show season episode)
+  local -a fields=()
+  local tokenType=""
+  local request=""
+  # TODO: extract more tokens
+  local -Ar sedExtractors=([show]='s/^Show Name@(.+)$/\1/p'
+                           [title]='s/^Episode Info@[0-9]+x[0-9]+\^([^\^]+)\^.*$/\1/p')
+
+  for tokenType in "${fieldTypes[@]}"; do
+    fields+=("$(serenity.tools.urlEncode "$(serenity.tokens.get "${tokenType}")")")
+  done
+
+  request="$(printf "${requestFormat}" "${fields[@]}")" &&
+  serenity.debug.debug "TVRage: generated request: $request" || {
+    serenity.debug.warning "TVRage: failed to generate request ${requestFormat} ${fields[*]}"
+    return 1
+  }
+
+  local response
+  response="$(curl -s "${request}")" && {
+    if grep '&#[0-9]*;' <<< "${response}"> /dev/null ; then
+      response="$(asc2xml <<< "${response}")"
+    fi
+    serenity.debug.debug "TVRage: begin response"
+    serenity.debug.debug "$response"
+    serenity.debug.debug "TVRage: end response"
+  } || {
+    serenity.debug.warning "TVRage: request failure"
+    return 1
+  }
+
+  for tokenType in "${!sedExtractors[@]}"; do
+    serenity.debug.debug "TVRage: using expression ${sedExtractors["${tokenType}"]} for $tokenType"
+    serenity.tokens.set "${tokenType}" "$(sed -n -r -e "${sedExtractors["${tokenType}"]}" <<< "${response}")"
+  done
+}
