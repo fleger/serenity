@@ -47,6 +47,17 @@ serenity.filters.romanToArabic() {
   echo "${result}"
 }
 
+serenity.filters.urlEncode() {
+  local inputBuffer="$(cat)"
+  while [[ "$inputBuffer" =~ ^([0-9a-zA-Z/:_\.\-]*)([^0-9a-zA-Z/:_\.\-])(.*) ]]; do
+    echo -n "${BASH_REMATCH[1]}"
+    printf "%%%X" "'${BASH_REMATCH[2]}'"
+    inputBuffer="${BASH_REMATCH[3]}"
+  done
+  # the remaining part
+  echo -n "$inputBuffer"
+}
+
 serenity.filters.urlDecode() {
   local inputBuffer="$(cat)"
   local i="0"

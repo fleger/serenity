@@ -14,17 +14,6 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-serenity.tools.urlEncode() {
-  local arg="$1"
-  while [[ "$arg" =~ ^([0-9a-zA-Z/:_\.\-]*)([^0-9a-zA-Z/:_\.\-])(.*) ]]; do
-    echo -n "${BASH_REMATCH[1]}"
-    printf "%%%X" "'${BASH_REMATCH[2]}'"
-    arg="${BASH_REMATCH[3]}"
-  done
-  # the remaining part
-  echo -n "$arg"
-}
-
 serenity.tools.contains() {
   local item
   local match="$1"

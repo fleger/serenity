@@ -27,7 +27,7 @@ serenity.refiningBackends.tvrage() {
                            [title]='s/^Episode Info@[0-9]+x[0-9]+\^([^\^]+)\^.*$/\1/p')
 
   for tokenType in "${fieldTypes[@]}"; do
-    fields+=("$(serenity.tools.urlEncode "$(serenity.tokens.get "${tokenType}")")")
+    fields+=("$(serenity.filters.urlEncode < <(serenity.tokens.get "${tokenType}"))")
   done
 
   request="$(printf "${requestFormat}" "${fields[@]}")" &&
