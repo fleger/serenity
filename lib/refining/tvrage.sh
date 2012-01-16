@@ -22,9 +22,18 @@ serenity.refiningBackends.tvrage() {
   local -a fields=()
   local tokenType=""
   local request=""
-  # TODO: extract more tokens
   local -Ar sedExtractors=([show]='s/^Show Name@(.+)$/\1/p'
-                           [title]='s/^Episode Info@[0-9]+x[0-9]+\^([^\^]+)\^.*$/\1/p')
+                           [title]='s/^Episode Info@[0-9]+x[0-9]+\^([^\^]+)\^.*$/\1/p'
+                           [premiered]='s/^Premiered@([0-9]+)$/\1/p'
+                           [started]='s/^Started@(.+)$/\1/p'
+                           [ended]='s/^Ended@(.+)$/\1/p'
+                           [date]='s/^Episode Info@[0-9]+x[0-9]+\^[^\^]+\^(.+)$/\1/p'
+                           [country]='s/^Country@(.+)$/\1/p'
+                           [status]='s/^Status@(.+)$/\1/p'
+                           [classification]='s/^Classification@(.+)$/\1/p'
+                           [genres]='s/^Genres@(.+)$/\1/p'
+                           [network]='s/^Network@(.+)$/\1/p'
+                           [runtime]='s/^Runtime@([0-9]+)$/\1/p')
 
   for tokenType in "${fieldTypes[@]}"; do
     fields+=("$(serenity.filters.urlEncode < <(serenity.tokens.get "${tokenType}"))")
