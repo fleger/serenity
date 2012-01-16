@@ -18,11 +18,12 @@
 
 serenity.actions.help() {
   cat << EOF
-Usage: ${serenity_env_executable} [OPTION...] FILE...
+Usage: ${serenity_env_executable} [OPTION]... FILE
 
 Options and arguments:
 
   -d              dry-run; don't rename files, only print their new name
+  -t              only test if FILE's name follows a recognizable pattern
   -o <string>     set output prefix [default: none]
   -f              do not prompt before overwriting
   -i              prompt before overwrite

@@ -38,6 +38,7 @@ local -a serenity_conf_formatting=()
 local serenity_conf_globalPostprocessing=''
 local serenity_conf_keepExtension=''
 
-local serenity_conf_dryRun=1
+local serenity_conf_dryRun=false
+local serenity_conf_test=false
 local serenity_conf_outputPrefix="."
 local -a serenity_conf_mvArgs=()

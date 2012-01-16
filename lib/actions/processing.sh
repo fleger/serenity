@@ -17,13 +17,10 @@
 
 # Processing action entry point
 serenity.actions.processing() {
-  local f
-  for f; do
-    serenity.processing.processFile "${f}" || {
-      serenity.debug.error "Something went wrong."
-      return 1
-    }
-  done
+  serenity.processing.processFile "${1}" || {
+    "${serenity_conf_test}" || serenity.debug.error "Something went wrong."
+    return 1
+  }
   serenity.debug.info "Done."
 }
 
@@ -34,16 +31,18 @@ serenity.processing.processFile() {
   local fileName="$(basename "${1}")"
   
   finalName="$(serenity.pipeline.execute serenity.processing.processDefinition "${fileName}" <<< "${fileName}")" || {
-    serenity.debug.error "Processing failed!"
+    "${serenity_conf_test}" || serenity.debug.error "Processing failed!"
     return 1
   }
-  if [ ! ${serenity_conf_dryRun} ]; then
-    serenity.processing.move" ${1}" "$(readlink -f "${serenity_conf_outputPrefix}")/${finalName}" || {
-      serenity.debug.error "Couldn't move ${1} to $(readlink -f "${serenity_conf_outputPrefix}")/${finalName}"
-      return 1
-    }
-  else
-    echo "${finalName}"
+  if [ ! ${serenity_conf_test} ]; then
+    if [ ! ${serenity_conf_dryRun} ]; then
+      serenity.processing.move" ${1}" "$(readlink -f "${serenity_conf_outputPrefix}")/${finalName}" || {
+        serenity.debug.error "Couldn't move ${1} to $(readlink -f "${serenity_conf_outputPrefix}")/${finalName}"
+        return 1
+      }
+    else
+      echo "${finalName}"
+    fi
   fi
 }
 
@@ -70,27 +69,29 @@ serenity.processing.trace() {
 
 # Processing algorithm
 serenity.processing.processDefinition() {
-  local -a flat=()
-  local key
   serenity.pipeline.add serenity.processing.trace serenity.processing.callFilterChain "$serenity_conf_globalPreprocessing"
   # FIXME: pass configuration
   serenity.pipeline.add serenity.processing.trace serenity.processing.tokenization
-  flat=()
-  for key in "${!serenity_conf_tokenPreprocessing[@]}"; do
-    flat+=("${key}" "${serenity_conf_tokenPreprocessing[${key}]}")
-  done
-  serenity.pipeline.add serenity.processing.trace serenity.processing.tokenProcessing "${flat[@]}"
-  serenity.pipeline.add serenity.processing.trace serenity.processing.refining "${serenity_conf_refiningBackends[@]}"
+  if ! "${serenity_conf_test}"; then
+    local -a flat=()
+    local key
     flat=()
-  for key in "${!serenity_conf_tokenPostprocessing[@]}"; do
-    flat+=("${key}" "${serenity_conf_tokenPostprocessing[${key}]}")
-  done
-  serenity.pipeline.add serenity.processing.trace serenity.processing.tokenProcessing "${flat[@]}"
-  serenity.pipeline.add serenity.processing.trace serenity.processing.formatting "${serenity_conf_formatting[@]}"
-  serenity.pipeline.add serenity.processing.trace serenity.processing.callFilterChain "$serenity_conf_globalPostprocessing"
-  # Extension
-  if [ "x$serenity_conf_keepExtension" = "xyes" ]; then
-    serenity.pipeline.add serenity.processing.trace serenity.processing.extension "${1}"
+    for key in "${!serenity_conf_tokenPreprocessing[@]}"; do
+      flat+=("${key}" "${serenity_conf_tokenPreprocessing[${key}]}")
+    done
+    serenity.pipeline.add serenity.processing.trace serenity.processing.tokenProcessing "${flat[@]}"
+    serenity.pipeline.add serenity.processing.trace serenity.processing.refining "${serenity_conf_refiningBackends[@]}"
+      flat=()
+    for key in "${!serenity_conf_tokenPostprocessing[@]}"; do
+      flat+=("${key}" "${serenity_conf_tokenPostprocessing[${key}]}")
+    done
+    serenity.pipeline.add serenity.processing.trace serenity.processing.tokenProcessing "${flat[@]}"
+    serenity.pipeline.add serenity.processing.trace serenity.processing.formatting "${serenity_conf_formatting[@]}"
+    serenity.pipeline.add serenity.processing.trace serenity.processing.callFilterChain "$serenity_conf_globalPostprocessing"
+    # Extension
+    if [ "x$serenity_conf_keepExtension" = "xyes" ]; then
+      serenity.pipeline.add serenity.processing.trace serenity.processing.extension "${1}"
+    fi
   fi
 }
 

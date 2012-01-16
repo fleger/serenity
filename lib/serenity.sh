@@ -52,9 +52,10 @@ serenity.main() {
   local action="processing"
   local OPTARG
   local OPTIND=1
-  while getopts do:fibnh opt; do
+  while getopts dto:fibnh opt; do
     case "$opt" in
-      d) serenity_conf_dryRun="0";;
+      d) serenity_conf_dryRun=true;;
+      t) serenity_conf_test=true;;
 #       l)
 #         serenity_conf_list=${OPTARG}
 #         action="list";;
@@ -85,7 +86,7 @@ serenity.helpers.crash() {
 
 # Load (source) the configuration files defined in serenity_env_conf
 serenity.helpers.loadUserConfig() {
-  local -a loadedFiles
+  local -a loadedFiles=()
   local f
   # Do not load the same file twice
   serenity.debug.debug "Config: conf files: ${serenity_env_conf[@]}"
