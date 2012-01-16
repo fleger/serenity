@@ -34,8 +34,8 @@ serenity.processing.processFile() {
     "${serenity_conf_test}" || serenity.debug.error "Processing failed!"
     return 1
   }
-  if [ ! ${serenity_conf_test} ]; then
-    if [ ! ${serenity_conf_dryRun} ]; then
+  if ! ${serenity_conf_test}; then
+    if ! ${serenity_conf_dryRun}; then
       serenity.processing.move" ${1}" "$(readlink -f "${serenity_conf_outputPrefix}")/${finalName}" || {
         serenity.debug.error "Couldn't move ${1} to $(readlink -f "${serenity_conf_outputPrefix}")/${finalName}"
         return 1
