@@ -48,22 +48,28 @@ serenity.processing.processFile() {
 
 # For debugging purposes
 serenity.processing.trace() {
-  # FIXME: get rid of cat
-  local inputBuffer="$(cat)"
-  serenity.debug.debug "Trace [$1]: begin trace"
-  serenity.debug.debug "Trace [$1]: calling $*"
-  serenity.debug.debug "Trace [$1]: begin stdin dump"
-  serenity.debug.debug "$inputBuffer"
-  serenity.debug.debug "Trace [$1]: end stdin dump"
-  local outputBuffer
-  outputBuffer="$("${@}" <<< "${inputBuffer}")"
-  local errorCode="$?"
-  serenity.debug.debug "Trace [$1]: error code: $errorCode"
-  serenity.debug.debug "Trace [$1]: begin stdout dump"
-  serenity.debug.debug "$outputBuffer"
-  serenity.debug.debug "Trace [$1]: end stdout dump"
-  serenity.debug.debug "Trace [$1]: end trace"
-  echo "${outputBuffer}"
+  local errorCode
+  if [ "x${serenity_conf_tracing}" = "xyes" ]; then
+    # FIXME: get rid of cat
+    local inputBuffer="$(cat)"
+    serenity.debug.debug "Trace [$1]: begin trace"
+    serenity.debug.debug "Trace [$1]: calling $*"
+    serenity.debug.debug "Trace [$1]: begin stdin dump"
+    serenity.debug.debug "$inputBuffer"
+    serenity.debug.debug "Trace [$1]: end stdin dump"
+    local outputBuffer
+    outputBuffer="$("${@}" <<< "${inputBuffer}")"
+    errorCode="$?"
+    serenity.debug.debug "Trace [$1]: error code: $errorCode"
+    serenity.debug.debug "Trace [$1]: begin stdout dump"
+    serenity.debug.debug "$outputBuffer"
+    serenity.debug.debug "Trace [$1]: end stdout dump"
+    serenity.debug.debug "Trace [$1]: end trace"
+    echo "${outputBuffer}"
+  else
+    "${@}"
+    errorCode="$?"
+  fi
   return $errorCode
 }
 

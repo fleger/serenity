@@ -36,7 +36,8 @@ local -a serenity_conf_refiningBackends=('dummy')
 local -A serenity_conf_tokenPostprocessing=()
 local -a serenity_conf_formatting=()
 local serenity_conf_globalPostprocessing=''
-local serenity_conf_keepExtension=''
+local serenity_conf_tracing='no'
+local serenity_conf_keepExtension='yes'
 
 local serenity_conf_dryRun=false
 local serenity_conf_test=false
