@@ -185,17 +185,7 @@ serenity.processing.formatting() {
   local -A serenity__currentTokens=()
   serenity.tokens.deserialize
 
-  local format="${1}"
-  shift
-
-  local -a fields=()
-  local tokenType=""
-
-  for tokenType; do
-    fields+=("$(serenity.tokens.get "${tokenType}")")
-  done
-
-  printf "${format}" "${fields[@]}"
+  "serenity.formatters.${@}"
 }
 
 serenity.processing.extension() {
@@ -209,6 +199,3 @@ serenity.processing.move() {
   mkdir -p "$(dirname "${2}")" &&
   mv "${serenity_conf_mvArgs[@]}" "${1}" "${2}"
 }
-
-
-

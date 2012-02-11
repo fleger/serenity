@@ -32,6 +32,7 @@ serenity.main() {
                       "${serenity_env_lib}/tokens.sh" "${serenity_env_lib}/pipeline.sh"
                       "${serenity_env_lib}/actions/"*.sh
                       "${serenity_env_lib}/filters/"*.sh
+                      "${serenity_env_lib}/formatters/"*.sh
                       "${serenity_env_lib}/tokenizers/"*.sh
                       "${serenity_env_lib}/refining/"*.sh)
   local l=""
