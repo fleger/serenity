@@ -1,0 +1,14 @@
+Serenity TODO list
+==================
+
+In no particular order:
+
+- Figure out how to have multi-episode support
+- Bring back the multi file support from gen2
+- Document the various APIs
+- Better comments
+- Bring back the -l option from gen2 (obviously in a different form)
+- Commandline token override
+- Modular help system (for the various modules)
+- Try to get rid of cat (by using read?)
+- Tests
