@@ -15,18 +15,37 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 serenity.tokens.deserialize() {
+  local length
+  local section="0"
+  while read -r length; do
+    section=$(($section + 1))
+    if [ "${1}" = "-m" ]; then
+      serenity.tokens.deserializeSection "$length" "$section:"
+    else
+      serenity.tokens.deserializeSection "$length"
+    fi
+  done
+  if [ "${1}" = "-m" ]; then
+    serenity__currentTokens["sections"]="$section"
+  fi
+}
+
+serenity.tokens.deserializeSection() {
   local key=""
   local tmp=""
+  local i
+  local length="${1}"
   local -r STATE_KEY=0
   local -r STATE_VALUE=1
   local state="$STATE_KEY"
-  while read -r tmp; do
+  for i in $(seq 1 $(($length * 2))); do
+    read -r tmp
     case "${state}" in
       "${STATE_KEY}")
         key="${tmp}"
         state="${STATE_VALUE}";;
       "${STATE_VALUE}")
-        serenity__currentTokens["${key}"]="${tmp}"
+        serenity__currentTokens["${2}""${key}"]="${tmp}"
         state="${STATE_KEY}";;
     esac
   done
@@ -34,15 +53,36 @@ serenity.tokens.deserialize() {
 
 serenity.tokens.serialize() {
   local key=""
+  echo "${#serenity__currentTokens[@]}"
   for key in "${!serenity__currentTokens[@]}"; do
     echo "${key}"
     echo "${serenity__currentTokens[${key}]}"
   done
 }
 
+serenity.tokens.copyPrefix() {
+  local dest=""
+  local k
+  [ -n "$2" ] && dest="$2:"
+  for k in "${!serenity__currentTokens[@]}"; do
+    if [ -n "$1" ]; then
+      [[ "$k" =~ ^$1:(.+) ]] &&
+      serenity.tokens.set "$dest${BASH_REMATCH[1]}" "${serenity__currentTokens["$k"]}"
+    else
+      ! [[ "$k" =~ ^[0-9]+:(.+) ]] &&
+      serenity.tokens.set "$dest$k" "${serenity__currentTokens["$k"]}"
+    fi
+  done
+}
+
 serenity.tokens.get() {
-  if serenity.tools.contains "${1}" "${!serenity__currentTokens[@]}"; then
-    echo "${serenity__currentTokens["${1}"]}"
+  local prefix=""
+  if [ "${1}" = "-m" ]; then
+    prefix="${2}:"
+    shift 2
+  fi
+  if serenity.tools.contains "${prefix}${1}" "${!serenity__currentTokens[@]}"; then
+    echo "${serenity__currentTokens["${prefix}${1}"]}"
   elif serenity.tools.contains "${1}" "${!serenity_conf_tokenDefaults[@]}"; then
     echo "${serenity_conf_tokenDefaults["${1}"]}"
   else

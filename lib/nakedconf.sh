@@ -38,6 +38,7 @@ local -a serenity_conf_formatting=()
 local serenity_conf_globalPostprocessing=''
 local serenity_conf_tracing='no'
 local serenity_conf_keepExtension='yes'
+local -a serenity_conf_multipartStripList=()
 
 local serenity_conf_dryRun=false
 local serenity_conf_test=false
