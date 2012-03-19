@@ -47,6 +47,18 @@ serenity.filters.romanToArabic() {
   echo "${result}"
 }
 
+serenity.filters.lstrip() {
+   local inputBuffer
+   inputBuffer="$(cat)"
+   echo "${inputBuffer##$1}"
+}
+
+serenity.filters.rstrip() {
+   local inputBuffer
+   inputBuffer="$(cat)"
+   echo "${inputBuffer%%$1}"
+}
+
 serenity.filters.urlEncode() {
   local inputBuffer="$(cat)"
   while [[ "$inputBuffer" =~ ^([0-9a-zA-Z/:_\.\-]*)([^0-9a-zA-Z/:_\.\-])(.*) ]]; do
