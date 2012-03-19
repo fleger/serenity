@@ -15,37 +15,18 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 serenity.tokens.deserialize() {
-  local length
-  local section="0"
-  while read -r length; do
-    section=$(($section + 1))
-    if [ "${1}" = "-m" ]; then
-      serenity.tokens.deserializeSection "$length" "$section:"
-    else
-      serenity.tokens.deserializeSection "$length"
-    fi
-  done
-  if [ "${1}" = "-m" ]; then
-    serenity__currentTokens["sections"]="$section"
-  fi
-}
-
-serenity.tokens.deserializeSection() {
   local key=""
   local tmp=""
-  local i
-  local length="${1}"
   local -r STATE_KEY=0
   local -r STATE_VALUE=1
   local state="$STATE_KEY"
-  for i in $(seq 1 $(($length * 2))); do
-    read -r tmp
+  while read -r tmp; do
     case "${state}" in
       "${STATE_KEY}")
         key="${tmp}"
         state="${STATE_VALUE}";;
       "${STATE_VALUE}")
-        serenity__currentTokens["${2}""${key}"]="${tmp}"
+        serenity__currentTokens["${key}"]="${tmp}"
         state="${STATE_KEY}";;
     esac
   done
@@ -53,44 +34,64 @@ serenity.tokens.deserializeSection() {
 
 serenity.tokens.serialize() {
   local key=""
-  echo "${#serenity__currentTokens[@]}"
   for key in "${!serenity__currentTokens[@]}"; do
-    echo "${key}"
-    echo "${serenity__currentTokens[${key}]}"
-  done
-}
-
-serenity.tokens.copyPrefix() {
-  local dest=""
-  local k
-  [ -n "$2" ] && dest="$2:"
-  for k in "${!serenity__currentTokens[@]}"; do
-    if [ -n "$1" ]; then
-      [[ "$k" =~ ^$1:(.+) ]] &&
-      serenity.tokens.set "$dest${BASH_REMATCH[1]}" "${serenity__currentTokens["$k"]}"
-    else
-      ! [[ "$k" =~ ^[0-9]+:(.+) ]] &&
-      serenity.tokens.set "$dest$k" "${serenity__currentTokens["$k"]}"
-    fi
+    serenity.tokens.addToStream "${key}" "${serenity__currentTokens[${key}]}"
   done
 }
 
 serenity.tokens.get() {
-  local prefix=""
-  if [ "${1}" = "-m" ]; then
-    prefix="${2}:"
-    shift 2
-  fi
-  if serenity.tools.contains "${prefix}${1}" "${!serenity__currentTokens[@]}"; then
-    echo "${serenity__currentTokens["${prefix}${1}"]}"
-  elif serenity.tools.contains "${1}" "${!serenity_conf_tokenDefaults[@]}"; then
-    echo "${serenity_conf_tokenDefaults["${1}"]}"
-  else
-    echo "${serenity_conf_tokenDefaults['default']}"
+  local opt
+  local OPTARG
+  local OPTIND=1
+  local noDefault=false
+  while getopts n opt; do
+    case "$opt" in
+      n) noDefault=true;;
+    esac
+  done
+  shift $((${OPTIND} - 1))
+  
+  if serenity.tokens.isSet "${1}"; then
+    echo "${serenity__currentTokens["${1}"]}"
+  elif ! $noDefault; then
+    if serenity.tools.contains "${1%*::}" "${!serenity_conf_tokenDefaults[@]}"; then
+      echo "${serenity_conf_tokenDefaults["${1%*::}"]}"
+    else
+      echo "${serenity_conf_tokenDefaults['default']}"
+    fi
   fi
 }
 
 serenity.tokens.set() {
   serenity.debug.debug "Tokens: set ${1} to ${2}"
   serenity__currentTokens["${1}"]="${2}"
+}
+
+
+serenity.tokens.isSet() {
+  serenity.tools.contains "${1}" "${!serenity__currentTokens[@]}"
+}
+
+serenity.tokens.filter.copyPrefix() {
+  local -A serenity__currentTokens=()
+  serenity.tokens.deserialize
+
+  local orig="$1"
+  local dest="$2"
+
+  [ -n "$orig" ] && orig="$orig::"
+  [ -n "$dest" ] && dest="$dest::"
+
+  local key
+  for key in "${!serenity__currentTokens[@]}"; do
+    if [[ (-n "$orig" && "$key" == "$orig"*) || (-z "$orig" && "$key" != *::*) ]]; then
+      serenity.tokens.set "$dest${key#$orig}" "${serenity__currentTokens["$key"]}"
+    fi
+  done
+  serenity.tokens.serialize
+}
+
+serenity.tokens.addToStream() {
+  echo "$1"
+  echo "$2"
 }
