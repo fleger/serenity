@@ -249,10 +249,10 @@ serenity.processing.helpers.commonTokens() {
   for key in "${!serenity__currentTokens[@]}"; do
     {
       [[ "$key" == *::* ]] &&
-      serenity.tools.contains "${key%%::*}" "${@}" &&
+      serenity.tools.contains "${key%%::*}" "${@}"
     } || {
       [[ "$key" != *::* ]] &&
-      serenity.tools.contains "" "${@}" &&
+      serenity.tools.contains "" "${@}"
     } && {
       if ! serenity.tools.contains "${key#*::}" "${badTokens[@]}"; then
         if serenity.tools.contains "${key#*::}" "${!tokenValues[@]}"; then
