@@ -17,7 +17,7 @@
 serenity.tokenizers.reMatch() {
   local regex="${1}"
   shift
-  local inputBuffer="$(cat)"
+  local inputBuffer="$(< /dev/stdin)"
   [[ "$inputBuffer" =~ $regex ]] || {
     serenity.debug.debug "REMatch: $regex doesn't' match $inputBuffer"
     return 1

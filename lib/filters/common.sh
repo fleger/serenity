@@ -28,7 +28,7 @@ serenity.filters.romanToArabic() {
   local result=0
   local previousValue=0
   local currentValue=0
-  local inputBuffer="$(cat)"
+  local inputBuffer="$(< /dev/stdin)"
   [[ "${number}" =~ ^${serenity_filters_romanNumeralRE}+$ ]] || {
     # Not a roman numeral
     echo "${inputBuffer}"
@@ -49,18 +49,18 @@ serenity.filters.romanToArabic() {
 
 serenity.filters.lstrip() {
    local inputBuffer
-   inputBuffer="$(cat)"
+   inputBuffer="$(< /dev/stdin)"
    echo "${inputBuffer##$1}"
 }
 
 serenity.filters.rstrip() {
    local inputBuffer
-   inputBuffer="$(cat)"
+   inputBuffer="$(< /dev/stdin)"
    echo "${inputBuffer%%$1}"
 }
 
 serenity.filters.urlEncode() {
-  local inputBuffer="$(cat)"
+  local inputBuffer="$(< /dev/stdin)"
   while [[ "$inputBuffer" =~ ^([0-9a-zA-Z/:_\.\-]*)([^0-9a-zA-Z/:_\.\-])(.*) ]]; do
     echo -n "${BASH_REMATCH[1]}"
     printf "%%%X" "'${BASH_REMATCH[2]}'"
@@ -71,7 +71,7 @@ serenity.filters.urlEncode() {
 }
 
 serenity.filters.urlDecode() {
-  local inputBuffer="$(cat)"
+  local inputBuffer="$(< /dev/stdin)"
   local i="0"
   while [ "$i" -lt ${#inputBuffer} ]; do
     local c0=${inputBuffer:$i:1}

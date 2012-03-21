@@ -50,8 +50,7 @@ serenity.processing.processFile() {
 serenity.processing.trace() {
   local errorCode
   if [ "x${serenity_conf_tracing}" = "xyes" ]; then
-    # FIXME: get rid of cat
-    local inputBuffer="$(cat)"
+    local inputBuffer="$(< /dev/stdin)"
     serenity.debug.debug "Trace [$1]: begin trace"
     serenity.debug.debug "Trace [$1]: calling $*"
     serenity.debug.debug "Trace [$1]: begin stdin dump"
@@ -114,14 +113,13 @@ serenity.processing.callFilterChain() {
   if [ "x${1}" != "x" ]; then
     serenity.pipeline.execute "serenity.conf.chains.${1}"
   else
-    cat
+    echo "$(< /dev/stdin)"
   fi
 }
 
 # Tokenization (with token environment)
 serenity.processing.tokenization() {
-  # FIXME: get rid of cat
-  local inputBuffer="$(cat)"
+  local inputBuffer="$(< /dev/stdin)"
   local offset=0
   local length
   local -a commandLine=()
@@ -326,8 +324,7 @@ serenity.processing.formatting() {
 serenity.processing.extension() {
   local ext=""
   [[ "${1}" =~ ^.*\..*$ ]] && ext=".${1##*.}"
-  # FIXME: get rid of cat
-  echo "$(cat)${ext}"
+  echo "$(< /dev/stdin)${ext}"
 }
 
 serenity.processing.move() {

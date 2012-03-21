@@ -32,7 +32,7 @@ serenity.pipeline._consume() {
     _pipeline=("${_pipeline[@]:$(( $nItems + 1 ))}")
     "${pipelineCommand[@]}" | serenity.pipeline._consume
   else
-    cat
+    echo "$(< /dev/stdin)"
   fi
 }
 
