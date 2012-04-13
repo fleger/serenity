@@ -25,7 +25,7 @@ override DESTDIR:=$(abspath $(DESTDIR))
 
 
 SED=/bin/sed
-INSTALL=/bin/install
+INSTALL=install
 RM=/bin/rm
 RMDIR=/bin/rmdir
 TAR=/bin/tar
