@@ -101,8 +101,8 @@ serenity.conf.check.list.refiningBackends() {
 }
 
 serenity.conf.check.list.aggregators() {
-  serenity.conf.check.functions "serenity_conf_aggregatorPriorities" "serenity.aggregators." ".run"
-  serenity.conf.check.functions "serenity_conf_aggregatorPriorities" "serenity.aggregators." ".checkRequirements"
+  serenity.conf.check.functions "serenity_conf_aggregatorPriorities" "serenity.aggregators." ".run" || return 1
+  serenity.conf.check.functions "serenity_conf_aggregatorPriorities" "serenity.aggregators." ".checkRequirements" || return 1
 }
 
 serenity.conf.check.list.tokenizers() {
