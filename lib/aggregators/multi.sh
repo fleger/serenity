@@ -21,7 +21,7 @@ serenity.aggregators.multi.checkRequirements() {
 serenity.aggregators.multi.run() {
   # Multiple episodes
   local e
-  serenity.processing.helpers.commonTokens common $(seq 1 "$(serenity.tokens.get "_::episode_count")")
+  serenity.tokens.copyCommon common $(seq 1 "$(serenity.tokens.get "_::episode_count")")
   local -a titles=("$(serenity.tokens.get 1::title)")
   local lastEpisode="$(serenity.tokens.get 1::episode)"
   local firstEpisode="$(serenity.tokens.get 1::episode)"
@@ -40,13 +40,30 @@ serenity.aggregators.multi.run() {
     serenity.debug.debug "Multi aggregator: common show & season"
     serenity.tokens.set first_episode "$firstEpisode"
     serenity.tokens.set last_episode "$lastEpisode"
-    local commonTitle="$(serenity.processing.stripTitle "${titles[0]}")"
+    local commonTitle="$(serenity.aggregators.multi.stripTitle "${titles[0]}")"
     local sameTitle=true
     for e in "${titles[@]:1}"; do
-      [ "$commonTitle" != "$(serenity.processing.stripTitle "${e}")" ] &&
+      [ "$commonTitle" != "$(serenity.aggregators.multi.stripTitle "${e}")" ] &&
       sameTitle=false &&
       break
     done
     $sameTitle && serenity.tokens.set common::title "$commonTitle"
   fi
+}
+
+serenity.aggregators.multi.stripTitle() {
+  local title="$1"
+  shift
+
+  local previous=""
+
+  while [ "${title}" != "${previous}" ]; do
+    previous="${title}"
+    for re in "${serenity_conf_multipartStripList[@]}"; do
+      [[ "$title" =~ $re ]] &&
+      title="${title%${BASH_REMATCH[1]}}"
+    done
+  done
+
+  echo "${title}"
 }

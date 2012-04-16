@@ -95,3 +95,35 @@ serenity.tokens.addToStream() {
   echo "$1"
   echo "$2"
 }
+
+serenity.tokens.copyCommon() {
+  local -A tokenValues=()
+  local -a badTokens=()
+  local dest="$1"
+  [ -n "$dest" ] && dest="$dest::"
+  shift
+  local key
+  for key in "${!serenity__currentTokens[@]}"; do
+    {
+      [[ "$key" == *::* ]] &&
+      serenity.tools.contains "${key%%::*}" "${@}"
+    } || {
+      [[ "$key" != *::* ]] &&
+      serenity.tools.contains "" "${@}"
+    } && {
+      if ! serenity.tools.contains "${key#*::}" "${badTokens[@]}"; then
+        if serenity.tools.contains "${key#*::}" "${!tokenValues[@]}"; then
+          if [[ "$(serenity.tokens.get "$key")" != "${tokenValues["${key#*::}"]}" ]]; then
+            badTokens+=("${key#*::}")
+          fi
+        else
+          tokenValues["${key#*::}"]="$(serenity.tokens.get "$key")"
+        fi
+      fi
+    }
+  done
+  for key in "${!tokenValues[@]}"; do
+    serenity.tools.contains "${key}" "${badTokens[@]}" ||
+    serenity.tokens.set "$dest$key" "${tokenValues["$key"]}"
+  done
+}

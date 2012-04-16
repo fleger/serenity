@@ -19,5 +19,5 @@ serenity.aggregators.single.checkRequirements() {
 }
 
 serenity.aggregators.single.run() {
-  serenity.processing.helpers.commonTokens "1" ""
+  serenity.tokens.copyCommon "1" ""
 }

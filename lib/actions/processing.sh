@@ -46,64 +46,38 @@ serenity.processing.processFile() {
   fi
 }
 
-# For debugging purposes
-serenity.processing.trace() {
-  local errorCode
-  if [ "x${serenity_conf_tracing}" = "xyes" ]; then
-    local inputBuffer="$(< /dev/stdin)"
-    serenity.debug.debug "Trace [$1]: begin trace"
-    serenity.debug.debug "Trace [$1]: calling $*"
-    serenity.debug.debug "Trace [$1]: begin stdin dump"
-    serenity.debug.debug "$inputBuffer"
-    serenity.debug.debug "Trace [$1]: end stdin dump"
-    local outputBuffer
-    outputBuffer="$("${@}" <<< "${inputBuffer}")"
-    errorCode="$?"
-    serenity.debug.debug "Trace [$1]: error code: $errorCode"
-    serenity.debug.debug "Trace [$1]: begin stdout dump"
-    serenity.debug.debug "$outputBuffer"
-    serenity.debug.debug "Trace [$1]: end stdout dump"
-    serenity.debug.debug "Trace [$1]: end trace"
-    echo "${outputBuffer}"
-  else
-    "${@}"
-    errorCode="$?"
-  fi
-  return $errorCode
-}
-
 # Processing algorithms
 
 serenity.processing.globalProcessDefinition() {
   local -a flat=()
   local key
-  serenity.pipeline.add serenity.processing.trace serenity.processing.callFilterChain "$serenity_conf_globalPreprocessing"
+  serenity.pipeline.add serenity.debug.trace serenity.processing.callFilterChain "$serenity_conf_globalPreprocessing"
   # FIXME: pass configuration
-  serenity.pipeline.add serenity.processing.trace serenity.processing.tokenization
+  serenity.pipeline.add serenity.debug.trace serenity.processing.tokenization
   if ! "${serenity_conf_test}"; then
     flat=()
     for key in "${!serenity_conf_tokenPreprocessing[@]}"; do
       flat+=("${key}" "${serenity_conf_tokenPreprocessing[${key}]}")
     done
-    serenity.pipeline.add serenity.processing.trace serenity.processing.tokenProcessing "${flat[@]}"
-    serenity.pipeline.add serenity.processing.trace serenity.processing.split
-    serenity.pipeline.add serenity.processing.trace serenity.processing.aggregate
+    serenity.pipeline.add serenity.debug.trace serenity.processing.tokenProcessing "${flat[@]}"
+    serenity.pipeline.add serenity.debug.trace serenity.processing.split
+    serenity.pipeline.add serenity.debug.trace serenity.processing.aggregate
     flat=()
     for key in "${!serenity_conf_tokenPostprocessing[@]}"; do
       flat+=("${key}" "${serenity_conf_tokenPostprocessing[${key}]}")
     done
-    serenity.pipeline.add serenity.processing.trace serenity.processing.tokenProcessing "${flat[@]}"
-    serenity.pipeline.add serenity.processing.trace serenity.processing.formatting "${serenity_conf_formatting[@]}"
-    serenity.pipeline.add serenity.processing.trace serenity.processing.callFilterChain "$serenity_conf_globalPostprocessing"
+    serenity.pipeline.add serenity.debug.trace serenity.processing.tokenProcessing "${flat[@]}"
+    serenity.pipeline.add serenity.debug.trace serenity.processing.formatting "${serenity_conf_formatting[@]}"
+    serenity.pipeline.add serenity.debug.trace serenity.processing.callFilterChain "$serenity_conf_globalPostprocessing"
     # Extension
     if [ "x$serenity_conf_keepExtension" = "xyes" ]; then
-      serenity.pipeline.add serenity.processing.trace serenity.processing.extension "${1}"
+      serenity.pipeline.add serenity.debug.trace serenity.processing.extension "${1}"
     fi
   fi
 }
 
 serenity.processing.perEpisodeProcessDefinition() {
-  serenity.pipeline.add serenity.processing.trace serenity.processing.refining "${serenity_conf_refiningBackends[@]}"
+  serenity.pipeline.add serenity.debug.trace serenity.processing.refining "${serenity_conf_refiningBackends[@]}"
 }
 
 # Processing steps
@@ -202,56 +176,6 @@ serenity.processing.refining() {
     serenity.debug.debug "Refining: failure with ${backend}"
   done
   return 1
-}
-
-serenity.processing.stripTitle() {
-  local title="$1"
-  shift
-  
-  local previous=""
-
-  while [ "${title}" != "${previous}" ]; do
-    previous="${title}"
-    for re in "${serenity_conf_multipartStripList[@]}"; do
-      [[ "$title" =~ $re ]] &&
-      title="${title%${BASH_REMATCH[1]}}"
-    done
-  done
-
-  echo "${title}"
-}
-
-
-serenity.processing.helpers.commonTokens() {
-  local -A tokenValues=()
-  local -a badTokens=()
-  local dest="$1"
-  [ -n "$dest" ] && dest="$dest::"
-  shift
-  local key
-  for key in "${!serenity__currentTokens[@]}"; do
-    {
-      [[ "$key" == *::* ]] &&
-      serenity.tools.contains "${key%%::*}" "${@}"
-    } || {
-      [[ "$key" != *::* ]] &&
-      serenity.tools.contains "" "${@}"
-    } && {
-      if ! serenity.tools.contains "${key#*::}" "${badTokens[@]}"; then
-        if serenity.tools.contains "${key#*::}" "${!tokenValues[@]}"; then
-          if [[ "$(serenity.tokens.get "$key")" != "${tokenValues["${key#*::}"]}" ]]; then
-            badTokens+=("${key#*::}")
-          fi
-        else
-          tokenValues["${key#*::}"]="$(serenity.tokens.get "$key")"
-        fi
-      fi
-    }
-  done
-  for key in "${!tokenValues[@]}"; do
-    serenity.tools.contains "${key}" "${badTokens[@]}" ||
-    serenity.tokens.set "$dest$key" "${tokenValues["$key"]}"
-  done
 }
 
 serenity.processing.aggregate() {

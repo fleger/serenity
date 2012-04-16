@@ -61,3 +61,28 @@ serenity.debug.critical() {
   serenity.debug.echostderr "[CRITICAL] " "$@"
   true
 }
+
+serenity.debug.trace() {
+  local errorCode
+  if [ "x${serenity_conf_tracing}" = "xyes" ]; then
+    local inputBuffer="$(< /dev/stdin)"
+    serenity.debug.debug "Trace [$1]: begin trace"
+    serenity.debug.debug "Trace [$1]: calling $*"
+    serenity.debug.debug "Trace [$1]: begin stdin dump"
+    serenity.debug.debug "$inputBuffer"
+    serenity.debug.debug "Trace [$1]: end stdin dump"
+    local outputBuffer
+    outputBuffer="$("${@}" <<< "${inputBuffer}")"
+    errorCode="$?"
+    serenity.debug.debug "Trace [$1]: error code: $errorCode"
+    serenity.debug.debug "Trace [$1]: begin stdout dump"
+    serenity.debug.debug "$outputBuffer"
+    serenity.debug.debug "Trace [$1]: end stdout dump"
+    serenity.debug.debug "Trace [$1]: end trace"
+    echo "${outputBuffer}"
+  else
+    "${@}"
+    errorCode="$?"
+  fi
+  return $errorCode
+}
