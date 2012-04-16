@@ -16,7 +16,7 @@
 
 # Show help text
 
-serenity.actions.help() {
+serenity.actions.help.run() {
   cat << EOF
 Usage: ${serenity_env_executable} [OPTION]... FILE
 

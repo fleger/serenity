@@ -16,7 +16,7 @@
 
 # TVRage QuickInfo refining backend
 
-serenity.refiningBackends.tvrage() {
+serenity.refiningBackends.tvrage.run() {
   local -r requestFormat="http://services.tvrage.com/tools/quickinfo.php?show=%s&ep=%dx%d"
   local -ar fieldTypes=(show season episode)
   local -a fields=()

@@ -14,7 +14,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-serenity.tokenizers.reMatch() {
+serenity.tokenizers.reMatch.run() {
   local regex="${1}"
   shift
   local inputBuffer="$(< /dev/stdin)"

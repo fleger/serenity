@@ -16,7 +16,7 @@
 
 
 # Token printf formatting
-serenity.formatters.printf() {
+serenity.formatters.printf.run() {
   local format="${1}"
   shift
 

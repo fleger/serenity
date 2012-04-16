@@ -34,3 +34,10 @@ serenity.tools.characters() {
   done
 }
 
+serenity.tools.isFunction() {
+  [[ "$(type -t "$1")" = "function" ]]
+}
+
+serenity.tools.isExecutable() {
+  serenity.tools.isFunction "$1" || which "$1" &> /dev/null
+}

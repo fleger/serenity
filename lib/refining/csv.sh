@@ -18,7 +18,7 @@ local serenity_conf_backend_csv_file="serenity.csv"
 local serenity_conf_backend_csv_separator=";"
 local -a serenity_conf_backend_csv_format=()
 
-serenity.refiningBackends.csv() {
+serenity.refiningBackends.csv.run() {
   if [ -f "$serenity_conf_backend_csv_file" ]; then
     serenity.debug.debug "CSV: reading $serenity_conf_backend_csv_file"
     local line

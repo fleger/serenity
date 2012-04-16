@@ -16,7 +16,7 @@
 
 
 # Token multi-printf formatting
-serenity.formatters.mprintf() {
+serenity.formatters.mprintf.run() {
   local arg
   local format=""
   local -a fields=()
@@ -40,7 +40,7 @@ serenity.formatters.mprintf() {
 
       "${STATE_FIELD}")
         [ "${arg}" = "-f" ] && {
-          serenity.helpers.formatters.mprintf.printf "${format}" "${fields[@]}" && {
+          serenity.formatters.mprintf.printf "${format}" "${fields[@]}" && {
             errorCode=0
             state="${STATE_EXIT_SUCCESS}"
           } || {
@@ -63,13 +63,13 @@ serenity.formatters.mprintf() {
 
   # Left over
   [ "${state}" = "${STATE_FIELD}" ] &&
-  serenity.helpers.formatters.mprintf.printf "${format}" "${fields[@]}" &&
+  serenity.formatters.mprintf.printf "${format}" "${fields[@]}" &&
   errorCode=0
 
   return "$errorCode"
 }
 
-serenity.helpers.formatters.mprintf.printf() {
+serenity.formatters.mprintf.printf() {
   local format="${1}"
   shift
 

@@ -18,8 +18,8 @@ serenity.splitters.single.checkRequirements() {
   true
 }
 
-serenity.splitters.single.perEpisodeProcessing() {
-  serenity.tokens.serialize | serenity.pipeline.execute serenity.processing.perEpisodeProcessDefinition | serenity.tokens.filter.copyPrefix "" "1"
+serenity.splitters.single.run() {
+  serenity.tokens.serialize | serenity.pipeline.execute serenity.actions.processing.definition.perEpisode | serenity.tokens.filter.copyPrefix "" "1"
   serenity.tokens.addToStream "_::episode_count" "1"
 }
 

@@ -16,8 +16,8 @@
 
 
 # Processing action entry point
-serenity.actions.processing() {
-  serenity.processing.processFile "${1}" || {
+serenity.actions.processing.run() {
+  serenity.actions.processing.processFile "${1}" || {
     "${serenity_conf_test}" || serenity.debug.error "Something went wrong."
     return 1
   }
@@ -25,18 +25,18 @@ serenity.actions.processing() {
 }
 
 # Process a file
-serenity.processing.processFile() {
+serenity.actions.processing.processFile() {
   serenity.debug.info "Processing ${1}..."
   local finalName=""
   local fileName="$(basename "${1}")"
   
-  finalName="$(serenity.pipeline.execute serenity.processing.globalProcessDefinition "${fileName}" <<< "${fileName}")" || {
+  finalName="$(serenity.pipeline.execute serenity.actions.processing.definitions.global "${fileName}" <<< "${fileName}")" || {
     "${serenity_conf_test}" || serenity.debug.error "Processing failed!"
     return 1
   }
   if ! ${serenity_conf_test}; then
     if ! ${serenity_conf_dryRun}; then
-      serenity.processing.move "${1}" "$(readlink -f "${serenity_conf_outputPrefix}")/${finalName}" || {
+      serenity.actions.processing.move "${1}" "$(readlink -f "${serenity_conf_outputPrefix}")/${finalName}" || {
         serenity.debug.error "Couldn't move ${1} to $(readlink -f "${serenity_conf_outputPrefix}")/${finalName}"
         return 1
       }
@@ -46,44 +46,43 @@ serenity.processing.processFile() {
   fi
 }
 
-# Processing algorithms
-
-serenity.processing.globalProcessDefinition() {
+# Processing definitions
+serenity.actions.processing.definitions.global() {
   local -a flat=()
   local key
-  serenity.pipeline.add serenity.debug.trace serenity.processing.callFilterChain "$serenity_conf_globalPreprocessing"
+  serenity.pipeline.add serenity.debug.trace serenity.actions.processing.callFilterChain "$serenity_conf_globalPreprocessing"
   # FIXME: pass configuration
-  serenity.pipeline.add serenity.debug.trace serenity.processing.tokenization
+  serenity.pipeline.add serenity.debug.trace serenity.actions.processing.tokenization
   if ! "${serenity_conf_test}"; then
     flat=()
     for key in "${!serenity_conf_tokenPreprocessing[@]}"; do
       flat+=("${key}" "${serenity_conf_tokenPreprocessing[${key}]}")
     done
-    serenity.pipeline.add serenity.debug.trace serenity.processing.tokenProcessing "${flat[@]}"
-    serenity.pipeline.add serenity.debug.trace serenity.processing.split
-    serenity.pipeline.add serenity.debug.trace serenity.processing.aggregate
+    serenity.pipeline.add serenity.debug.trace serenity.actions.processing.tokenProcessing "${flat[@]}"
+    serenity.pipeline.add serenity.debug.trace serenity.actions.processing.split
+    serenity.pipeline.add serenity.debug.trace serenity.actions.processing.aggregate
     flat=()
     for key in "${!serenity_conf_tokenPostprocessing[@]}"; do
       flat+=("${key}" "${serenity_conf_tokenPostprocessing[${key}]}")
     done
-    serenity.pipeline.add serenity.debug.trace serenity.processing.tokenProcessing "${flat[@]}"
-    serenity.pipeline.add serenity.debug.trace serenity.processing.formatting "${serenity_conf_formatting[@]}"
-    serenity.pipeline.add serenity.debug.trace serenity.processing.callFilterChain "$serenity_conf_globalPostprocessing"
+    serenity.pipeline.add serenity.debug.trace serenity.actions.processing.tokenProcessing "${flat[@]}"
+    serenity.pipeline.add serenity.debug.trace serenity.actions.processing.formatting "${serenity_conf_formatting[@]}"
+    serenity.pipeline.add serenity.debug.trace serenity.actions.processing.callFilterChain "$serenity_conf_globalPostprocessing"
     # Extension
     if [ "x$serenity_conf_keepExtension" = "xyes" ]; then
-      serenity.pipeline.add serenity.debug.trace serenity.processing.extension "${1}"
+      serenity.pipeline.add serenity.debug.trace serenity.actions.processing.extension "${1}"
     fi
   fi
 }
 
-serenity.processing.perEpisodeProcessDefinition() {
-  serenity.pipeline.add serenity.debug.trace serenity.processing.refining "${serenity_conf_refiningBackends[@]}"
+serenity.actions.processing.definition.perEpisode() {
+  serenity.pipeline.add serenity.debug.trace serenity.actions.processing.refining "${serenity_conf_refiningBackends[@]}"
 }
 
 # Processing steps
 
 # Call a given filter chain
-serenity.processing.callFilterChain() {
+serenity.actions.processing.callFilterChain() {
   if [ "x${1}" != "x" ]; then
     serenity.pipeline.execute "serenity.conf.chains.${1}"
   else
@@ -92,7 +91,7 @@ serenity.processing.callFilterChain() {
 }
 
 # Tokenization (with token environment)
-serenity.processing.tokenization() {
+serenity.actions.processing.tokenization() {
   local inputBuffer="$(< /dev/stdin)"
   local offset=0
   local length
@@ -100,9 +99,9 @@ serenity.processing.tokenization() {
   for length in "${serenity_conf__tokenizerLengths[@]}"; do
     commandLine=("${serenity_conf__tokenizers[@]:${offset}:${length}}")
     offset=$(( ${offset} + ${length} ))
-
+    commandLine[0]="serenity.tokenizers.${commandLine[0]}.run"
     local -A serenity__currentTokens=()
-    serenity.tokenizers."${commandLine[@]}" <<< "${inputBuffer}" &&
+    "${commandLine[@]}" <<< "${inputBuffer}" &&
     serenity.debug.debug "Tokenization: success with ${commandLine[*]}" &&
     # Token serialization
     serenity.tokens.serialize &&
@@ -113,7 +112,7 @@ serenity.processing.tokenization() {
   return 1
 }
 
-serenity.processing.split() {
+serenity.actions.processing.split() {
   # Tokens deserialization
   local -A serenity__currentTokens=()
   serenity.tokens.deserialize
@@ -133,7 +132,7 @@ serenity.processing.split() {
 }
 
 # Token processing (with token environment)
-serenity.processing.tokenProcessing() {
+serenity.actions.processing.tokenProcessing() {
   # Processing chains unpacking
   local -A tokenProcessing=()
   until [ "$#" -lt 2 ]; do
@@ -150,10 +149,10 @@ serenity.processing.tokenProcessing() {
   for tokenType in "${!serenity__currentTokens[@]}"; do
     if serenity.tools.contains "${tokenType#*::}" "${!tokenProcessing[@]}"; then
       serenity.tokens.set "${tokenType}" \
-        "$(serenity.processing.callFilterChain "${tokenProcessing["${tokenType#*::}"]}" < <(serenity.tokens.get "${tokenType}"))"
+        "$(serenity.actions.processing.callFilterChain "${tokenProcessing["${tokenType#*::}"]}" < <(serenity.tokens.get "${tokenType}"))"
     else
       serenity.tokens.set "${tokenType}" \
-        "$(serenity.processing.callFilterChain "${tokenProcessing["default"]}" < <(serenity.tokens.get "${tokenType}"))"
+        "$(serenity.actions.processing.callFilterChain "${tokenProcessing["default"]}" < <(serenity.tokens.get "${tokenType}"))"
     fi
   done
   # Token serialization
@@ -161,14 +160,14 @@ serenity.processing.tokenProcessing() {
 }
 
 # Token refining
-serenity.processing.refining() {
+serenity.actions.processing.refining() {
   # Tokens deserialization
   local -A serenity__currentTokens=()
   serenity.tokens.deserialize
 
   local backend
   for backend; do
-    serenity.refiningBackends.${backend} &&
+    "serenity.refiningBackends.${backend}.run" &&
     serenity.debug.debug "Refining: success with ${backend}" &&
     # Token serialization
     serenity.tokens.serialize &&
@@ -178,7 +177,7 @@ serenity.processing.refining() {
   return 1
 }
 
-serenity.processing.aggregate() {
+serenity.actions.processing.aggregate() {
   # Tokens deserialization
   local -A serenity__currentTokens=()
   serenity.tokens.deserialize
@@ -195,21 +194,21 @@ serenity.processing.aggregate() {
 }
 
 # Token formatting
-serenity.processing.formatting() {
+serenity.actions.processing.formatting() {
   # Tokens deserialization
   local -A serenity__currentTokens=()
   serenity.tokens.deserialize
-
-  "serenity.formatters.${@}"
+  # Note: Shouldn't this be "${@:1}"?
+  "serenity.formatters.${1}.run" "${@:2}"
 }
 
-serenity.processing.extension() {
+serenity.actions.processing.extension() {
   local ext=""
   [[ "${1}" =~ ^.*\..*$ ]] && ext=".${1##*.}"
   echo "$(< /dev/stdin)${ext}"
 }
 
-serenity.processing.move() {
+serenity.actions.processing.move() {
   mkdir -p "$(dirname "${2}")" &&
   mv "${serenity_conf_mvArgs[@]}" "${1}" "${2}"
 }

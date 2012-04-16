@@ -43,12 +43,13 @@ serenity.main() {
     . "${l}" && {
       serenity.debug.debug "Serenity: ${l} loaded"
     } || {
-      serenity.helpers.crash "Serenity: failed to load ${l}"
+      serenity.crash "Serenity: failed to load ${l}"
     }
   done
 
   # Load user configuration
-  serenity.helpers.loadUserConfig
+  serenity.loadUserConfig
+  serenity.conf.check.run
 
   # Parse command line
   local opt
@@ -75,20 +76,24 @@ serenity.main() {
   # Show help if no arguments
   (($# < 1)) && [ "x${action}" = "xprocessing" ] && action="help"
 
-  serenity.debug.debug "Serenity: action $action"
-  "serenity.actions.${action}" "${@}"
+  if serenity.tools.isFunction "serenity.actions.${action}.run"; then
+    serenity.debug.debug "Serenity: running $action"
+    "serenity.actions.${action}.run" "${@}"
+  else
+    serenity.crash "Serenity: no action named $action"
+  fi
 }
 
 # Helpers
 
 # Crash serenity
-serenity.helpers.crash() {
+serenity.crash() {
   serenity.debug.critical "${@}"
   exit 1
 }
 
 # Load (source) the configuration files defined in serenity_env_conf
-serenity.helpers.loadUserConfig() {
+serenity.loadUserConfig() {
   local -a loadedFiles=()
   local f
   # Do not load the same file twice
