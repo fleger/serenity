@@ -32,7 +32,9 @@ serenity.conf.addTokenizer() {
 local serenity_conf_globalPreprocessing=''
 local -A serenity_conf_tokenDefaults=()
 local -A serenity_conf_tokenPreprocessing=()
+local -a serenity_conf_splitterPriorities=()
 local -a serenity_conf_refiningBackends=('dummy')
+local -a serenity_conf_aggregatorPriorities=()
 local -A serenity_conf_tokenPostprocessing=()
 local -a serenity_conf_formatting=()
 local serenity_conf_globalPostprocessing=''

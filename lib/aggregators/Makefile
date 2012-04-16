@@ -14,28 +14,24 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-SUBDIRS=actions aggregators filters formatters refining splitters tokenizers
-LIBS=$(wildcard *.sh)
-SOURCES=$(LIBS) Makefile
+TARGETDIR=$(LIBDIR)/aggregators
+SCRIPTS=$(wildcard *.sh)
+SOURCES=$(SCRIPTS) Makefile
 
 .PHONY: all, install, clean, uninstall, archive
 
-all:
-	for i in $(SUBDIRS); do pushd $$i; $(MAKE) $@; popd; done
+all: ;
 
 install:
-	$(INSTALL) $(INSTALLDIRFLAGS) "$(DESTDIR)$(LIBDIR)"
-	$(INSTALL) $(INSTALLFLAGS) -t "$(DESTDIR)$(LIBDIR)" $(LIBS)
-	for i in $(SUBDIRS); do pushd $$i; $(MAKE) $@; popd; done
-	
+	$(INSTALL) $(INSTALLDIRFLAGS) "$(DESTDIR)$(TARGETDIR)"
+	$(INSTALL) $(INSTALLFLAGS) -t "$(DESTDIR)$(TARGETDIR)" $(SCRIPTS)
+
 clean: ;
 
 uninstall:
-	-for i in $(SUBDIRS); do pushd $$i; $(MAKE) $@; popd; done
-	-for i in $(LIBS); do $(RM) "$(DESTDIR)$(LIBDIR)"/$$i; done
-	-$(RMDIR) "$(DESTDIR)$(LIBDIR)"
+	-for i in $(SCRIPTS); do $(RM) "$(DESTDIR)$(TARGETDIR)"/$$i; done
+	-$(RMDIR) "$(DESTDIR)$(TARGETDIR)"
 
 archive:
 	$(INSTALL) $(INSTALLDIRFLAGS) "$(TARDIR)"
 	$(INSTALL) $(INSTALLFLAGS) -t "$(TARDIR)" $(SOURCES)
-	for i in $(SUBDIRS); do pushd $$i; $(MAKE) "TARDIR=$(TARDIR)/$$i" $@; popd; done

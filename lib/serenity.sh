@@ -31,10 +31,12 @@ serenity.main() {
   local -a libraries=("${serenity_env_lib}/nakedconf.sh" "${serenity_env_lib}/tools.sh"
                       "${serenity_env_lib}/tokens.sh" "${serenity_env_lib}/pipeline.sh"
                       "${serenity_env_lib}/actions/"*.sh
+                      "${serenity_env_lib}/aggregators/"*.sh
                       "${serenity_env_lib}/filters/"*.sh
                       "${serenity_env_lib}/formatters/"*.sh
-                      "${serenity_env_lib}/tokenizers/"*.sh
-                      "${serenity_env_lib}/refining/"*.sh)
+                      "${serenity_env_lib}/refining/"*.sh
+                      "${serenity_env_lib}/splitters/"*.sh
+                      "${serenity_env_lib}/tokenizers/"*.sh)
   local l=""
   for l in "${libraries[@]}"; do
     [ -f "${l}" ] &&

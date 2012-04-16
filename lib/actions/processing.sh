@@ -73,13 +73,26 @@ serenity.processing.trace() {
 }
 
 # Processing algorithms
+
 serenity.processing.globalProcessDefinition() {
+  local -a flat=()
+  local key
   serenity.pipeline.add serenity.processing.trace serenity.processing.callFilterChain "$serenity_conf_globalPreprocessing"
   # FIXME: pass configuration
   serenity.pipeline.add serenity.processing.trace serenity.processing.tokenization
   if ! "${serenity_conf_test}"; then
-    serenity.pipeline.add serenity.processing.trace serenity.processing.perEpisodeProcessing
-    serenity.pipeline.add serenity.processing.trace serenity.processing.summarize
+    flat=()
+    for key in "${!serenity_conf_tokenPreprocessing[@]}"; do
+      flat+=("${key}" "${serenity_conf_tokenPreprocessing[${key}]}")
+    done
+    serenity.pipeline.add serenity.processing.trace serenity.processing.tokenProcessing "${flat[@]}"
+    serenity.pipeline.add serenity.processing.trace serenity.processing.split
+    serenity.pipeline.add serenity.processing.trace serenity.processing.aggregate
+    flat=()
+    for key in "${!serenity_conf_tokenPostprocessing[@]}"; do
+      flat+=("${key}" "${serenity_conf_tokenPostprocessing[${key}]}")
+    done
+    serenity.pipeline.add serenity.processing.trace serenity.processing.tokenProcessing "${flat[@]}"
     serenity.pipeline.add serenity.processing.trace serenity.processing.formatting "${serenity_conf_formatting[@]}"
     serenity.pipeline.add serenity.processing.trace serenity.processing.callFilterChain "$serenity_conf_globalPostprocessing"
     # Extension
@@ -89,21 +102,8 @@ serenity.processing.globalProcessDefinition() {
   fi
 }
 
-
 serenity.processing.perEpisodeProcessDefinition() {
-  local -a flat=()
-  local key
-  flat=()
-  for key in "${!serenity_conf_tokenPreprocessing[@]}"; do
-    flat+=("${key}" "${serenity_conf_tokenPreprocessing[${key}]}")
-  done
-  serenity.pipeline.add serenity.processing.trace serenity.processing.tokenProcessing "${flat[@]}"
   serenity.pipeline.add serenity.processing.trace serenity.processing.refining "${serenity_conf_refiningBackends[@]}"
-  flat=()
-  for key in "${!serenity_conf_tokenPostprocessing[@]}"; do
-    flat+=("${key}" "${serenity_conf_tokenPostprocessing[${key}]}")
-  done
-  serenity.pipeline.add serenity.processing.trace serenity.processing.tokenProcessing "${flat[@]}"
 }
 
 # Processing steps
@@ -139,40 +139,23 @@ serenity.processing.tokenization() {
   return 1
 }
 
-serenity.processing.perEpisodeProcessing() {
+serenity.processing.split() {
   # Tokens deserialization
   local -A serenity__currentTokens=()
   serenity.tokens.deserialize
 
-  local n
   local i
+  local returnCode=1
+  for i in "${serenity_conf_splitterPriorities[@]}"; do
+    if serenity.splitters."$i".checkRequirements; then
+      serenity.debug.debug "Split: running $i splitter"
+      serenity.splitters."$i".run
+      returnCode=0
+      break
+    fi
+  done
   
-  if [ -n "$(serenity.tokens.get first_episode)" ] && [ -n "$(serenity.tokens.get last_episode)" ]; then
-    # Multi-episode range mode
-    serenity.debug.debug "PerEpisodeProcessing: episode range mode"
-    i=0
-    for n in $(seq "$(serenity.tokens.get first_episode)" "$(serenity.tokens.get last_episode)"); do
-      i=$(( $i + 1 ))
-      serenity.tokens.set episode "${n}"
-      serenity.tokens.serialize | serenity.pipeline.execute serenity.processing.perEpisodeProcessDefinition | serenity.tokens.filter.copyPrefix "" "$i"
-    done
-  elif [ -n "$(serenity.tokens.get 1::episode)" ]; then
-    # Multi-episode numbers mode
-    serenity.debug.debug "PerEpisodeProcessing: multi episodes mode"
-    i=1
-    while [ -n "$(serenity.tokens.get ${i}::episode)" ]; do
-      serenity.tokens.serialize | serenity.tokens.filter.copyPrefix "${i}" "" | serenity.pipeline.execute serenity.processing.perEpisodeProcessDefinition | serenity.tokens.filter.copyPrefix "" "$i"
-      i=$(( i + 1 ))
-    done
-    i=$(( i - 1 ))
-  else
-    # Single episode mode
-    serenity.debug.debug "PerEpisodeProcessing: single episode mode"
-    serenity.tokens.serialize | serenity.pipeline.execute serenity.processing.perEpisodeProcessDefinition | serenity.tokens.filter.copyPrefix "" "1"
-    i=1
-  fi
-
-  serenity.tokens.addToStream "_::episode_count" "$i"
+  return "$returnCode"
 }
 
 # Token processing (with token environment)
@@ -191,10 +174,12 @@ serenity.processing.tokenProcessing() {
   # Processing
   local tokenType
   for tokenType in "${!serenity__currentTokens[@]}"; do
-    if serenity.tools.contains "${tokenType}" "${!tokenProcessing[@]}"; then
-      serenity__currentTokens["${tokenType}"]="$(serenity.processing.callFilterChain "${tokenProcessing[${tokenType}]}" <<< "${serenity__currentTokens["${tokenType}"]}")"
+    if serenity.tools.contains "${tokenType#*::}" "${!tokenProcessing[@]}"; then
+      serenity.tokens.set "${tokenType}" \
+        "$(serenity.processing.callFilterChain "${tokenProcessing["${tokenType#*::}"]}" < <(serenity.tokens.get "${tokenType}"))"
     else
-      serenity__currentTokens["${tokenType}"]="$(serenity.processing.callFilterChain "${tokenProcessing["default"]}" <<< "${serenity__currentTokens["${tokenType}"]}")"
+      serenity.tokens.set "${tokenType}" \
+        "$(serenity.processing.callFilterChain "${tokenProcessing["default"]}" < <(serenity.tokens.get "${tokenType}"))"
     fi
   done
   # Token serialization
@@ -269,46 +254,19 @@ serenity.processing.helpers.commonTokens() {
   done
 }
 
-serenity.processing.summarize() {
+serenity.processing.aggregate() {
   # Tokens deserialization
   local -A serenity__currentTokens=()
   serenity.tokens.deserialize
-  if [ "$(serenity.tokens.get "_::episode_count")" = "1" ]; then
-    # Single episode
-    serenity.debug.debug "Summarize: single episode mode"
-    serenity.processing.helpers.commonTokens "1" ""
-  else
-    # Multiple episodes
-    serenity.debug.debug "Summarize: multi episodes mode"
-    local e
-    serenity.processing.helpers.commonTokens common $(seq 1 "$(serenity.tokens.get "_::episode_count")")
-    local -a titles=("$(serenity.tokens.get 1::title)")
-    local lastEpisode="$(serenity.tokens.get 1::episode)"
-    local firstEpisode="$(serenity.tokens.get 1::episode)"
-    
-    for e in $(seq 2 "$(serenity.tokens.get "_::episode_count")"); do
-      titles+=("$(serenity.tokens.get "$e::title")")
-      if [ "$(serenity.tokens.get "$e::episode")" -gt "$lastEpisode" ]; then
-        lastEpisode="$(serenity.tokens.get "$e::episode")"
-      fi
-      if [ "$(serenity.tokens.get "$e::episode")" -lt "$firstEpisode" ]; then
-        firstEpisode="$(serenity.tokens.get "$e::episode")"
-      fi
-    done
-    if [[ -n "$(serenity.tokens.get -n common::show)" ]] && [[ -n "$(serenity.tokens.get -n common::season)" ]]; then
-      serenity.debug.debug "Summarize: range episode mode"
-      serenity.tokens.set first_episode "$firstEpisode"
-      serenity.tokens.set last_episode "$lastEpisode"
-      local commonTitle="$(serenity.processing.stripTitle "${titles[0]}")"
-      local sameTitle=true
-      for e in "${titles[@]:1}"; do
-        [ "$commonTitle" != "$(serenity.processing.stripTitle "${e}")" ] &&
-        sameTitle=false &&
-        break
-      done
-      $sameTitle && serenity.tokens.set common::title "$commonTitle"
+  
+  local i
+  for i in "${serenity_conf_aggregatorPriorities[@]}"; do
+    if serenity.aggregators."$i".checkRequirements; then
+      serenity.debug.debug "Aggregator: running $i aggregator"
+      serenity.aggregators."$i".run
     fi
-  fi
+  done
+  
   serenity.tokens.serialize
 }
 
