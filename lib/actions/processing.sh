@@ -149,10 +149,12 @@ serenity.actions.processing.tokenProcessing() {
   # Processing
   local tokenType
   for tokenType in "${!serenity__currentTokens[@]}"; do
-    if serenity.tools.contains "${tokenType#*::}" "${!tokenProcessing[@]}"; then
-      processedTokens["${tokenType}"]="$(serenity.actions.processing.callFilterChain "${tokenProcessing["${tokenType#*::}"]}" < <(serenity.tokens.get "${tokenType}"))"
-    else
-      processedTokens["${tokenType}"]="$(serenity.actions.processing.callFilterChain "${tokenProcessing["default"]}" < <(serenity.tokens.get "${tokenType}"))"
+    if [[ "$tokenType" != _::* ]]; then
+      if serenity.tools.contains "${tokenType#*::}" "${!tokenProcessing[@]}"; then
+        processedTokens["${tokenType}"]="$(serenity.actions.processing.callFilterChain "${tokenProcessing["${tokenType#*::}"]}" < <(serenity.tokens.get "${tokenType}"))"
+      else
+        processedTokens["${tokenType}"]="$(serenity.actions.processing.callFilterChain "${tokenProcessing["default"]}" < <(serenity.tokens.get "${tokenType}"))"
+      fi
     fi
   done
 
