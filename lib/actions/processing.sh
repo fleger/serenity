@@ -175,6 +175,7 @@ serenity.actions.processing.refining() {
   for backend; do
     "serenity.refiningBackends.${backend}.run" &&
     serenity.debug.debug "Refining: success with ${backend}" &&
+    serenity.tokens.set "_::refining_backend" "${backend}" &&
     # Token serialization
     serenity.tokens.serialize &&
     return 0 ||
