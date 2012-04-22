@@ -135,26 +135,32 @@ serenity.actions.processing.split() {
 serenity.actions.processing.tokenProcessing() {
   # Processing chains unpacking
   local -A tokenProcessing=()
-  until [ "$#" -lt 2 ]; do
+  until [[ "$#" -lt 2 ]]; do
     tokenProcessing["${1}"]="${2}"
     shift 2
   done
 
-  # Tokens deserialization
+  # Token deserialization
   local -A serenity__currentTokens=()
   serenity.tokens.deserialize
 
+  local -A processedTokens=()
+  
   # Processing
   local tokenType
   for tokenType in "${!serenity__currentTokens[@]}"; do
     if serenity.tools.contains "${tokenType#*::}" "${!tokenProcessing[@]}"; then
-      serenity.tokens.set "${tokenType}" \
-        "$(serenity.actions.processing.callFilterChain "${tokenProcessing["${tokenType#*::}"]}" < <(serenity.tokens.get "${tokenType}"))"
+      processedTokens["${tokenType}"]="$(serenity.actions.processing.callFilterChain "${tokenProcessing["${tokenType#*::}"]}" < <(serenity.tokens.get "${tokenType}"))"
     else
-      serenity.tokens.set "${tokenType}" \
-        "$(serenity.actions.processing.callFilterChain "${tokenProcessing["default"]}" < <(serenity.tokens.get "${tokenType}"))"
+      processedTokens["${tokenType}"]="$(serenity.actions.processing.callFilterChain "${tokenProcessing["default"]}" < <(serenity.tokens.get "${tokenType}"))"
     fi
   done
+
+  # Merging
+  for tokenType in "${!processedTokens[@]}"; do
+    serenity.tokens.set "${tokenType}" "${processedTokens["$tokenType"]}"
+  done
+
   # Token serialization
   serenity.tokens.serialize
 }
