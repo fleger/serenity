@@ -77,7 +77,7 @@ serenity.formatters.mprintf.printf() {
   local tokenType=""
 
   for tokenType; do
-    [ -n "$(serenity.tokens.get "${tokenType}")" ] && {
+    serenity.tokens.isSet "${tokenType}" || [ -n "$(serenity.tokens.get "${tokenType}")" ] && {
       fields+=("$(serenity.tokens.get "${tokenType}")")
     } || {
       serenity.debug.debug "mprintf: [KO] ${format} $*"
