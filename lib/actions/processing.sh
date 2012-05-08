@@ -59,7 +59,7 @@ serenity.actions.processing.definitions.global() {
       flat+=("${key}" "${serenity_conf_tokenPreprocessing[${key}]}")
     done
     serenity.pipeline.add serenity.debug.trace serenity.actions.processing.tokenProcessing "${flat[@]}"
-    serenity.pipeline.add serenity.debug.trace serenity.actions.processing.split
+    serenity.pipeline.add serenity.debug.trace serenity.actions.processing.split serenity.pipeline.execute serenity.actions.processing.definition.perEpisode
     serenity.pipeline.add serenity.debug.trace serenity.actions.processing.aggregate
     flat=()
     for key in "${!serenity_conf_tokenPostprocessing[@]}"; do
@@ -71,11 +71,11 @@ serenity.actions.processing.definitions.global() {
   fi
 }
 
+# Processing steps
+
 serenity.actions.processing.definition.perEpisode() {
   serenity.pipeline.add serenity.debug.trace serenity.actions.processing.refining "${serenity_conf_refiningBackends[@]}"
 }
-
-# Processing steps
 
 # Call a given filter chain
 serenity.actions.processing.callFilterChain() {
@@ -130,7 +130,7 @@ serenity.actions.processing.split() {
   for i in "${serenity_conf_splitterPriorities[@]}"; do
     if serenity.splitters."$i".checkRequirements; then
       serenity.debug.debug "Split: running $i splitter"
-      serenity.splitters."$i".run
+      serenity.splitters."$i".run "$@"
       returnCode=0
       break
     fi

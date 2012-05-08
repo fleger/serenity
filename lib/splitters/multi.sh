@@ -21,7 +21,7 @@ serenity.splitters.multi.checkRequirements() {
 serenity.splitters.multi.run() {
   local i=1
   while [[ -n "$(serenity.tokens.get ${i}::episode)" ]]; do
-    serenity.tokens.serialize | serenity.tokens.filter.copyPrefix "${i}" "" | serenity.pipeline.execute serenity.actions.processing.definition.perEpisode | serenity.tokens.filter.copyPrefix "" "$i"
+    serenity.tokens.serialize | serenity.tokens.filter.copyPrefix "${i}" "" | "${@}" | serenity.tokens.filter.copyPrefix "" "$i"
     i=$(( i + 1 ))
   done
   i=$(( i - 1 ))
