@@ -68,10 +68,6 @@ serenity.actions.processing.definitions.global() {
     serenity.pipeline.add serenity.debug.trace serenity.actions.processing.tokenProcessing "${flat[@]}"
     serenity.pipeline.add serenity.debug.trace serenity.actions.processing.formatting "${serenity_conf_formatting[@]}"
     serenity.pipeline.add serenity.debug.trace serenity.actions.processing.callFilterChain "$serenity_conf_globalPostprocessing"
-    # Extension
-    if [ "x$serenity_conf_keepExtension" = "xyes" ]; then
-      serenity.pipeline.add serenity.debug.trace serenity.actions.processing.extension "${1}"
-    fi
   fi
 }
 
@@ -96,17 +92,29 @@ serenity.actions.processing.tokenization() {
   local offset=0
   local length
   local -a commandLine=()
+
+  if [ "x$serenity_conf_keepExtension" = "xyes" ]; then
+    local extension=""
+    [[ "${inputBuffer}" =~ ^.*\..*$ ]] && extension=".${inputBuffer##*.}"
+    inputBuffer="${inputBuffer%.*}"
+  fi
+  
   for length in "${serenity_conf__tokenizerLengths[@]}"; do
     commandLine=("${serenity_conf__tokenizers[@]:${offset}:${length}}")
     offset=$(( ${offset} + ${length} ))
     commandLine[0]="serenity.tokenizers.${commandLine[0]}.run"
     local -A serenity__currentTokens=()
-    "${commandLine[@]}" <<< "${inputBuffer}" &&
-    serenity.debug.debug "Tokenization: success with ${commandLine[*]}" &&
-    # Token serialization
-    serenity.tokens.serialize &&
-    return 0 ||
-    serenity.debug.debug "Tokenization: failure with ${commandLine[*]}"
+    if "${commandLine[@]}" <<< "${inputBuffer}"; then
+      serenity.debug.debug "Tokenization: success with ${commandLine[*]}"
+      if [ "x$serenity_conf_keepExtension" = "xyes" ]; then
+        serenity.tokens.set "_::extension" "$extension"
+      fi
+      # Token serialization
+      serenity.tokens.serialize &&
+      return 0
+    else
+      serenity.debug.debug "Tokenization: failure with ${commandLine[*]}"
+    fi
   done
   serenity.debug.error "Tokenization: file name can't be tokenized"
   return 1
@@ -209,12 +217,6 @@ serenity.actions.processing.formatting() {
   serenity.tokens.deserialize
   # Note: Shouldn't this be "${@:1}"?
   "serenity.formatters.${1}.run" "${@:2}"
-}
-
-serenity.actions.processing.extension() {
-  local ext=""
-  [[ "${1}" =~ ^.*\..*$ ]] && ext=".${1##*.}"
-  echo "$(< /dev/stdin)${ext}"
 }
 
 serenity.actions.processing.move() {
