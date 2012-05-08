@@ -30,6 +30,7 @@ serenity.main() {
   local serenity_conf_verbosity=$serenity_debug_info
   local -a libraries=("${serenity_env_lib}/nakedconf.sh" "${serenity_env_lib}/tools.sh"
                       "${serenity_env_lib}/tokens.sh" "${serenity_env_lib}/pipeline.sh"
+                      "${serenity_env_lib}/core.sh"
                       "${serenity_env_lib}/actions/"*.sh
                       "${serenity_env_lib}/aggregators/"*.sh
                       "${serenity_env_lib}/filters/"*.sh

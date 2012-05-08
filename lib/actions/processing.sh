@@ -50,173 +50,29 @@ serenity.actions.processing.processFile() {
 serenity.actions.processing.definitions.global() {
   local -a flat=()
   local key
-  serenity.pipeline.add serenity.debug.trace serenity.actions.processing.callFilterChain "$serenity_conf_globalPreprocessing"
+  serenity.pipeline.add serenity.debug.trace serenity.core.callFilterChain "$serenity_conf_globalPreprocessing"
   # FIXME: pass configuration
-  serenity.pipeline.add serenity.debug.trace serenity.actions.processing.tokenization
+  serenity.pipeline.add serenity.debug.trace serenity.core.tokenization
   if ! "${serenity_conf_test}"; then
     flat=()
     for key in "${!serenity_conf_tokenPreprocessing[@]}"; do
       flat+=("${key}" "${serenity_conf_tokenPreprocessing[${key}]}")
     done
-    serenity.pipeline.add serenity.debug.trace serenity.actions.processing.tokenProcessing "${flat[@]}"
-    serenity.pipeline.add serenity.debug.trace serenity.actions.processing.split serenity.pipeline.execute serenity.actions.processing.definition.perEpisode
-    serenity.pipeline.add serenity.debug.trace serenity.actions.processing.aggregate
+    serenity.pipeline.add serenity.debug.trace serenity.core.tokenProcessing "${flat[@]}"
+    serenity.pipeline.add serenity.debug.trace serenity.core.split serenity.pipeline.execute serenity.actions.processing.definitions.perEpisode
+    serenity.pipeline.add serenity.debug.trace serenity.core.aggregate
     flat=()
     for key in "${!serenity_conf_tokenPostprocessing[@]}"; do
       flat+=("${key}" "${serenity_conf_tokenPostprocessing[${key}]}")
     done
-    serenity.pipeline.add serenity.debug.trace serenity.actions.processing.tokenProcessing "${flat[@]}"
-    serenity.pipeline.add serenity.debug.trace serenity.actions.processing.formatting "${serenity_conf_formatting[@]}"
-    serenity.pipeline.add serenity.debug.trace serenity.actions.processing.callFilterChain "$serenity_conf_globalPostprocessing"
+    serenity.pipeline.add serenity.debug.trace serenity.core.tokenProcessing "${flat[@]}"
+    serenity.pipeline.add serenity.debug.trace serenity.core.formatting "${serenity_conf_formatting[@]}"
+    serenity.pipeline.add serenity.debug.trace serenity.core.callFilterChain "$serenity_conf_globalPostprocessing"
   fi
 }
 
-# Processing steps
-
-serenity.actions.processing.definition.perEpisode() {
-  serenity.pipeline.add serenity.debug.trace serenity.actions.processing.refining "${serenity_conf_refiningBackends[@]}"
-}
-
-# Call a given filter chain
-serenity.actions.processing.callFilterChain() {
-  if [ "x${1}" != "x" ]; then
-    serenity.pipeline.execute "serenity.conf.chains.${1}"
-  else
-    echo "$(< /dev/stdin)"
-  fi
-}
-
-# Tokenization (with token environment)
-serenity.actions.processing.tokenization() {
-  local inputBuffer="$(< /dev/stdin)"
-  local offset=0
-  local length
-  local -a commandLine=()
-
-  if [ "x$serenity_conf_keepExtension" = "xyes" ]; then
-    local extension=""
-    [[ "${inputBuffer}" =~ ^.*\..*$ ]] && extension=".${inputBuffer##*.}"
-    inputBuffer="${inputBuffer%.*}"
-  fi
-  
-  for length in "${serenity_conf__tokenizerLengths[@]}"; do
-    commandLine=("${serenity_conf__tokenizers[@]:${offset}:${length}}")
-    offset=$(( ${offset} + ${length} ))
-    commandLine[0]="serenity.tokenizers.${commandLine[0]}.run"
-    local -A serenity__currentTokens=()
-    if "${commandLine[@]}" <<< "${inputBuffer}"; then
-      serenity.debug.debug "Tokenization: success with ${commandLine[*]}"
-      if [ "x$serenity_conf_keepExtension" = "xyes" ]; then
-        serenity.tokens.set "_::extension" "$extension"
-      fi
-      # Token serialization
-      serenity.tokens.serialize &&
-      return 0
-    else
-      serenity.debug.debug "Tokenization: failure with ${commandLine[*]}"
-    fi
-  done
-  serenity.debug.error "Tokenization: file name can't be tokenized"
-  return 1
-}
-
-serenity.actions.processing.split() {
-  # Tokens deserialization
-  local -A serenity__currentTokens=()
-  serenity.tokens.deserialize
-
-  local i
-  local returnCode=1
-  for i in "${serenity_conf_splitterPriorities[@]}"; do
-    if serenity.splitters."$i".checkRequirements; then
-      serenity.debug.debug "Split: running $i splitter"
-      serenity.splitters."$i".run "$@"
-      returnCode=0
-      break
-    fi
-  done
-  
-  return "$returnCode"
-}
-
-# Token processing (with token environment)
-serenity.actions.processing.tokenProcessing() {
-  # Processing chains unpacking
-  local -A tokenProcessing=()
-  until [[ "$#" -lt 2 ]]; do
-    tokenProcessing["${1}"]="${2}"
-    shift 2
-  done
-
-  # Token deserialization
-  local -A serenity__currentTokens=()
-  serenity.tokens.deserialize
-
-  local -A processedTokens=()
-  
-  # Processing
-  local tokenType
-  for tokenType in "${!serenity__currentTokens[@]}"; do
-    if [[ "$tokenType" != _::* ]]; then
-      if serenity.tools.contains "${tokenType#*::}" "${!tokenProcessing[@]}"; then
-        processedTokens["${tokenType}"]="$(serenity.actions.processing.callFilterChain "${tokenProcessing["${tokenType#*::}"]}" < <(serenity.tokens.get "${tokenType}"))"
-      else
-        processedTokens["${tokenType}"]="$(serenity.actions.processing.callFilterChain "${tokenProcessing["default"]}" < <(serenity.tokens.get "${tokenType}"))"
-      fi
-    fi
-  done
-
-  # Merging
-  for tokenType in "${!processedTokens[@]}"; do
-    serenity.tokens.set "${tokenType}" "${processedTokens["$tokenType"]}"
-  done
-
-  # Token serialization
-  serenity.tokens.serialize
-}
-
-# Token refining
-serenity.actions.processing.refining() {
-  # Tokens deserialization
-  local -A serenity__currentTokens=()
-  serenity.tokens.deserialize
-
-  local backend
-  for backend; do
-    "serenity.refiningBackends.${backend}.run" &&
-    serenity.debug.debug "Refining: success with ${backend}" &&
-    serenity.tokens.set "_::refining_backend" "${backend}" &&
-    # Token serialization
-    serenity.tokens.serialize &&
-    return 0 ||
-    serenity.debug.debug "Refining: failure with ${backend}"
-  done
-  return 1
-}
-
-serenity.actions.processing.aggregate() {
-  # Tokens deserialization
-  local -A serenity__currentTokens=()
-  serenity.tokens.deserialize
-  
-  local i
-  for i in "${serenity_conf_aggregatorPriorities[@]}"; do
-    if serenity.aggregators."$i".checkRequirements; then
-      serenity.debug.debug "Aggregator: running $i aggregator"
-      serenity.aggregators."$i".run
-    fi
-  done
-  
-  serenity.tokens.serialize
-}
-
-# Token formatting
-serenity.actions.processing.formatting() {
-  # Tokens deserialization
-  local -A serenity__currentTokens=()
-  serenity.tokens.deserialize
-  # Note: Shouldn't this be "${@:1}"?
-  "serenity.formatters.${1}.run" "${@:2}"
+serenity.actions.processing.definitions.perEpisode() {
+  serenity.pipeline.add serenity.debug.trace serenity.core.refining "${serenity_conf_refiningBackends[@]}"
 }
 
 serenity.actions.processing.move() {
