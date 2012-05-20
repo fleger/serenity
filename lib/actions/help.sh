@@ -16,21 +16,57 @@
 
 # Show help text
 
-serenity.actions.help.run() {
+serenity.actions.help.help() {
 cat << EOM
-Usage: ${serenity_env_executable} ACTION
+help [MODULE_TYPE]...
 
-Actions:
+  Show help about serenity modules.
 
+  Arguments:
+
+    MODULE_TYPE     show help for modules of MODULE_TYPE. Use the 'ist action to list the available
+                    module types. [default: 'actions']
 EOM
+}
 
-  local actionHelp
-  local line
+serenity.actions.help.run() {
+  local -a apis=()
+  local indentation=""
 
-  for actionHelp in $(serenity.tools.listFunctions '^serenity\.actions\.[^.]+\.help$'); do
-    "$actionHelp" | while IFS= read line; do
-      echo "  $line"
-    done
+  if [[ $# -eq 0 ]]; then
+    echo "Usage: ${serenity_env_executable} ACTION"
     echo
+    apis+=("actions")
+    indentation+="  "
+  else
+    apis+=("$@")
+  fi
+  
+  local api
+  local item
+  local line
+  local helpFunc
+
+  for api in "${apis[@]}"; do
+    if ! serenity.tools.contains "$api" "${!serenity_APIs[@]}"; then
+      serenity.crash "$api is not a valid module type"
+    fi
+
+    echo "$indentation${api^*}:"
+    echo
+    indentation+="  "
+    
+    for item in $(serenity.tools.listFunctions "${serenity_APIs["$api"]}"); do
+      helpFunc="$(printf ${serenity_APIs_help["$api"]} "$item")"
+      if serenity.tools.isFunction "$helpFunc"; then
+        "$helpFunc" | while IFS= read line; do
+          echo "$indentation$line"
+        done
+        echo
+        echo
+      fi
+    done
+
+    indentation="${indentation%  }"
   done
 }

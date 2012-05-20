@@ -29,21 +29,35 @@ serenity.main() {
 
   local serenity_conf_verbosity=$serenity_debug_info
 
+  local l
+
+  local -A serenity_APIs=(["actions"]='serenity\.actions\.([^.]+)\.run'
+                          ["aggregators"]='serenity\.aggregators\.([^.]+)\.run'
+                          ["filters"]='serenity\.filters\.(.+)'
+                          ["formatters"]='serenity\.formatters\.([^.]+)\.run'
+                          ["refining"]='serenity\.refiningBackends\.([^.]+)\.run'
+                          ["splitters"]='serenity\.splitters\.([^.]+)\.run'
+                          ["tokenizers"]='serenity\tokenizers\.([^.]+)\.run')
+
+  local -A serenity_APIs_help=( ["actions"]='serenity.actions.%s.help'
+                                ["aggregators"]='serenity.aggregators.%s.help'
+                                ["filters"]='serenity.filters.%s.help'
+                                ["formatters"]='serenity.formatters.%s.help'
+                                ["refining"]='serenity.refiningBackends.%s.help'
+                                ["splitters"]='serenity.splitters.%s.help'
+                                ["tokenizers"]='serenitytokenizers.%s.help')
+
   # Load the libraries
   local -a libraries=("${serenity_env_lib}/nakedconf.sh"
                       "${serenity_env_lib}/tools.sh"
                       "${serenity_env_lib}/tokens.sh"
                       "${serenity_env_lib}/pipeline.sh"
-                      "${serenity_env_lib}/processing.sh"
-                      "${serenity_env_lib}/actions/"*.sh
-                      "${serenity_env_lib}/aggregators/"*.sh
-                      "${serenity_env_lib}/filters/"*.sh
-                      "${serenity_env_lib}/formatters/"*.sh
-                      "${serenity_env_lib}/refining/"*.sh
-                      "${serenity_env_lib}/splitters/"*.sh
-                      "${serenity_env_lib}/tokenizers/"*.sh)
+                      "${serenity_env_lib}/processing.sh")
 
-  local l=""
+  for l in "${!serenity_APIs[@]}"; do
+    libraries+=("${serenity_env_lib}/${l}/"*.sh)
+  done
+
   for l in "${libraries[@]}"; do
     [[ -f "${l}" ]] &&
     source "${l}" && {
@@ -59,26 +73,6 @@ serenity.main() {
 
   # Parse commandline
   local action="help"
-#   local opt
-#   local OPTARG
-#   local OPTIND=1
-#   while getopts dto:fibnh opt; do
-#     case "$opt" in
-#       d) serenity_conf_dryRun=true;;
-#       t) serenity_conf_test=true;;
-# #       l)
-# #         serenity_conf_list=${OPTARG}
-# #         action="list";;
-#       o) serenity_conf_outputPrefix="${OPTARG}";;
-#       f) serenity_conf_mvArgs+=(-f);;
-#       i) serenity_conf_mvArgs+=(-i);;
-#       b) serenity_conf_mvArgs+=(-b);;
-#       n) serenity_conf_mvArgs+=(-n);;
-#       h|?) action="help";;
-#     esac
-#   done
-#   shift $((${OPTIND} - 1))
-
   (( $# > 0 )) && {
     action="$1"
     shift
@@ -118,32 +112,3 @@ serenity.loadUserConfig() {
     source "${f}"
   done
 }
-
-# serenity.actions.list() {
-#   local i
-#   case ${serenity_conf_list} in
-#     "preprocessing")
-#       for i in "${serenity_conf_preprocessing[@]}"; do
-#         echo ${i}
-#       done;;
-#     "postprocessing")
-#       for i in "${serenity_conf_postprocessing[@]}"; do
-#         echo ${i}
-#       done;;
-#     "tokenizers")
-#       for i in "${!serenity_conf_tokenizers_regex[@]}"; do
-#         echo "${serenity_conf_tokenizers_regex[$i]}"
-#         echo "${serenity_conf_tokenizers_associations[$i]}"
-#       done;;
-#     "backends")
-#       for i in "${serenity_conf_backends[@]}"; do
-#         echo ${i}
-#       done;;
-#     "formatting")
-#       echo ${serenity_conf_formatting_format}
-#       echo ${serenity_conf_formatting_associations};;
-#     *)
-#       echo "${serenity_conf_list} is not a valid parameter." >&2
-#       return 1;;
-#   esac
-# }
