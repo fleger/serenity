@@ -19,7 +19,7 @@ serenity.splitters.single.checkRequirements() {
 }
 
 serenity.splitters.single.run() {
-  serenity.tokens.serialize | "${@}" | serenity.tokens.filter.copyPrefix "" "1"
+  serenity.tokens.serialize | "${@}" | serenity.tokens.execute serenity.tokens.copyPrefix "" "1"
   serenity.tokens.addToStream "_::episode_count" "1"
 }
 

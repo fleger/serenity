@@ -83,7 +83,7 @@ serenity.actions.rename.processFile() {
   fi
 
   finalName="$(serenity.pipeline.execute serenity.actions.rename.definitions.global <<< "${fileName}")" || {
-    serenity.debug.error "Processing failed!"
+    serenity.debug.error "Processing failed! ($finalName)"
     return 1
   }
 
@@ -113,13 +113,13 @@ serenity.actions.rename.definitions.global() {
   done
   serenity.pipeline.add serenity.debug.trace serenity.processing.tokenProcessing "${flat[@]}"
   serenity.pipeline.add serenity.debug.trace serenity.processing.split serenity.pipeline.execute serenity.actions.rename.definitions.perEpisode
-  serenity.pipeline.add serenity.debug.trace serenity.processing.aggregate
+  serenity.pipeline.add serenity.debug.trace serenity.processing.aggregate "${serenity_conf_aggregatorPriorities[@]}"
   flat=()
   for key in "${!serenity_conf_tokenPostprocessing[@]}"; do
     flat+=("${key}" "${serenity_conf_tokenPostprocessing[${key}]}")
   done
   serenity.pipeline.add serenity.debug.trace serenity.processing.tokenProcessing "${flat[@]}"
-  serenity.pipeline.add serenity.debug.trace serenity.processing.formatting "${serenity_conf_formatting[@]}"
+  serenity.pipeline.add serenity.debug.trace serenity.processing.format "${serenity_conf_formatting[@]}"
   serenity.pipeline.add serenity.debug.trace serenity.processing.callFilterChain "$serenity_conf_globalPostrename"
 }
 

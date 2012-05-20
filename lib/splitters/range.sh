@@ -24,7 +24,7 @@ serenity.splitters.range.run() {
   for n in $(seq "$(serenity.tokens.get first_episode)" "$(serenity.tokens.get last_episode)"); do
     i=$(( $i + 1 ))
     serenity.tokens.set episode "${n}"
-    serenity.tokens.serialize | "${@}" | serenity.tokens.filter.copyPrefix "" "$i"
+    serenity.tokens.serialize | "${@}" | serenity.tokens.execute serenity.tokens.copyPrefix "" "$i"
   done
   serenity.tokens.addToStream "_::episode_count" "$i"
 }
