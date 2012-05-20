@@ -55,7 +55,7 @@ serenity.conf.check.functions() {
     esac
   done
   shift $((${OPTIND} - 1))
-  
+
   local i
   local ref="$1[@]"
 
@@ -147,7 +147,3 @@ local serenity_conf_tracing='no'
 local serenity_conf_keepExtension='yes'
 local -a serenity_conf_multipartStripList=()
 
-local serenity_conf_dryRun=false
-local serenity_conf_test=false
-local serenity_conf_outputPrefix="."
-local -a serenity_conf_mvArgs=()

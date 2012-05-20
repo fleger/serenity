@@ -18,19 +18,23 @@
 
 set -eo pipefail
 
+# serenity.main ACTION ARGS...
 # Main entry point
 serenity.main() {
-  # Load debugging routines
-  . "${serenity_env_lib}/debug.sh" || {
+  # Manual early load of the debugging routines
+  source "${serenity_env_lib}/debug.sh" || {
     echo "Serenity: failed to load ${serenity_env_lib}/debug.sh"
     exit 1;
   }
 
-  # Load libraries
   local serenity_conf_verbosity=$serenity_debug_info
-  local -a libraries=("${serenity_env_lib}/nakedconf.sh" "${serenity_env_lib}/tools.sh"
-                      "${serenity_env_lib}/tokens.sh" "${serenity_env_lib}/pipeline.sh"
-                      "${serenity_env_lib}/core.sh"
+
+  # Load the libraries
+  local -a libraries=("${serenity_env_lib}/nakedconf.sh"
+                      "${serenity_env_lib}/tools.sh"
+                      "${serenity_env_lib}/tokens.sh"
+                      "${serenity_env_lib}/pipeline.sh"
+                      "${serenity_env_lib}/processing.sh"
                       "${serenity_env_lib}/actions/"*.sh
                       "${serenity_env_lib}/aggregators/"*.sh
                       "${serenity_env_lib}/filters/"*.sh
@@ -38,44 +42,47 @@ serenity.main() {
                       "${serenity_env_lib}/refining/"*.sh
                       "${serenity_env_lib}/splitters/"*.sh
                       "${serenity_env_lib}/tokenizers/"*.sh)
+
   local l=""
   for l in "${libraries[@]}"; do
-    [ -f "${l}" ] &&
-    . "${l}" && {
+    [[ -f "${l}" ]] &&
+    source "${l}" && {
       serenity.debug.debug "Serenity: ${l} loaded"
     } || {
       serenity.crash "Serenity: failed to load ${l}"
     }
   done
 
-  # Load user configuration
-  serenity.loadUserConfig
+  # Load & check user configuration
+  serenity.loadUserConfig "${serenity_env_conf[@]}"
   serenity.conf.check.run
 
-  # Parse command line
-  local opt
-  local action="processing"
-  local OPTARG
-  local OPTIND=1
-  while getopts dto:fibnh opt; do
-    case "$opt" in
-      d) serenity_conf_dryRun=true;;
-      t) serenity_conf_test=true;;
-#       l)
-#         serenity_conf_list=${OPTARG}
-#         action="list";;
-      o) serenity_conf_outputPrefix="${OPTARG}";;
-      f) serenity_conf_mvArgs+=(-f);;
-      i) serenity_conf_mvArgs+=(-i);;
-      b) serenity_conf_mvArgs+=(-b);;
-      n) serenity_conf_mvArgs+=(-n);;
-      h|?) action="help";;
-    esac
-  done
-  shift $((${OPTIND} - 1))
+  # Parse commandline
+  local action="help"
+#   local opt
+#   local OPTARG
+#   local OPTIND=1
+#   while getopts dto:fibnh opt; do
+#     case "$opt" in
+#       d) serenity_conf_dryRun=true;;
+#       t) serenity_conf_test=true;;
+# #       l)
+# #         serenity_conf_list=${OPTARG}
+# #         action="list";;
+#       o) serenity_conf_outputPrefix="${OPTARG}";;
+#       f) serenity_conf_mvArgs+=(-f);;
+#       i) serenity_conf_mvArgs+=(-i);;
+#       b) serenity_conf_mvArgs+=(-b);;
+#       n) serenity_conf_mvArgs+=(-n);;
+#       h|?) action="help";;
+#     esac
+#   done
+#   shift $((${OPTIND} - 1))
 
-  # Show help if no arguments
-  (($# < 1)) && [ "x${action}" = "xprocessing" ] && action="help"
+  (( $# > 0 )) && {
+    action="$1"
+    shift
+  }
 
   if serenity.tools.isFunction "serenity.actions.${action}.run"; then
     serenity.debug.debug "Serenity: running $action"
@@ -85,29 +92,30 @@ serenity.main() {
   fi
 }
 
-# Helpers
-
-# Crash serenity
+# serenity.crash MESSAGE
+# Crash serenity and show MESSAGE
 serenity.crash() {
   serenity.debug.critical "${@}"
   exit 1
 }
 
-# Load (source) the configuration files defined in serenity_env_conf
+# serenity.loadUserConfig FILE...
+# Source the configuration files
 serenity.loadUserConfig() {
   local -a loadedFiles=()
   local f
+
   # Do not load the same file twice
-  serenity.debug.debug "Config: conf files: ${serenity_env_conf[@]}"
-  for f in "${serenity_env_conf[@]}"; do
-    serenity.debug.debug "Config: Trying to load $f" &&
-    [ -f "$f" ] &&
+  serenity.debug.debug "Config: conf files: ${@}"
+  for f in "${@}"; do
+    serenity.debug.debug "Config: Trying to load ${f}" &&
+    [[ -f "${f}" ]] &&
     f="$(readlink -f "${f}")" &&
-    ! serenity.tools.contains "$f" "${loadedFiles[@]}" &&
+    ! serenity.tools.contains "${f}" "${loadedFiles[@]}" &&
     serenity.debug.debug "Config: ${f} is not already loaded" &&
     loadedFiles+=("${f}") &&
-    serenity.debug.debug "Config: loading configuration file $f" &&
-    . "${f}"
+    serenity.debug.debug "Config: loading configuration file ${f}" &&
+    source "${f}"
   done
 }
 

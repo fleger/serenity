@@ -14,10 +14,10 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# Core algorithms
+# Processing algorithms
 
 # Call a given filter chain
-serenity.core.callFilterChain() {
+serenity.processing.callFilterChain() {
   if [ "x${1}" != "x" ]; then
     serenity.pipeline.execute "serenity.conf.chains.${1}"
   else
@@ -26,7 +26,7 @@ serenity.core.callFilterChain() {
 }
 
 # Tokenization (with token environment)
-serenity.core.tokenization() {
+serenity.processing.tokenization() {
   local inputBuffer="$(< /dev/stdin)"
   local offset=0
   local length
@@ -59,7 +59,7 @@ serenity.core.tokenization() {
   return 1
 }
 
-serenity.core.split() {
+serenity.processing.split() {
   # Tokens deserialization
   local -A serenity__currentTokens=()
   serenity.tokens.deserialize
@@ -79,7 +79,7 @@ serenity.core.split() {
 }
 
 # Token processing (with token environment)
-serenity.core.tokenProcessing() {
+serenity.processing.tokenProcessing() {
   # Processing chains unpacking
   local -A tokenProcessing=()
   until [[ "$#" -lt 2 ]]; do
@@ -98,9 +98,9 @@ serenity.core.tokenProcessing() {
   for tokenType in "${!serenity__currentTokens[@]}"; do
     if [[ "$tokenType" != _::* ]]; then
       if serenity.tools.contains "${tokenType#*::}" "${!tokenProcessing[@]}"; then
-        processedTokens["${tokenType}"]="$(serenity.core.callFilterChain "${tokenProcessing["${tokenType#*::}"]}" < <(serenity.tokens.get "${tokenType}"))"
+        processedTokens["${tokenType}"]="$(serenity.processing.callFilterChain "${tokenProcessing["${tokenType#*::}"]}" < <(serenity.tokens.get "${tokenType}"))"
       else
-        processedTokens["${tokenType}"]="$(serenity.core.callFilterChain "${tokenProcessing["default"]}" < <(serenity.tokens.get "${tokenType}"))"
+        processedTokens["${tokenType}"]="$(serenity.processing.callFilterChain "${tokenProcessing["default"]}" < <(serenity.tokens.get "${tokenType}"))"
       fi
     fi
   done
@@ -115,7 +115,7 @@ serenity.core.tokenProcessing() {
 }
 
 # Token refining
-serenity.core.refining() {
+serenity.processing.refining() {
   # Tokens deserialization
   local -A serenity__currentTokens=()
   serenity.tokens.deserialize
@@ -133,7 +133,7 @@ serenity.core.refining() {
   return 1
 }
 
-serenity.core.aggregate() {
+serenity.processing.aggregate() {
   # Tokens deserialization
   local -A serenity__currentTokens=()
   serenity.tokens.deserialize
@@ -150,7 +150,7 @@ serenity.core.aggregate() {
 }
 
 # Token formatting
-serenity.core.formatting() {
+serenity.processing.formatting() {
   # Tokens deserialization
   local -A serenity__currentTokens=()
   serenity.tokens.deserialize

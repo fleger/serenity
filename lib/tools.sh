@@ -41,3 +41,20 @@ serenity.tools.isFunction() {
 serenity.tools.isExecutable() {
   serenity.tools.isFunction "$1" || which "$1" &> /dev/null
 }
+
+# serenity.tools.listFunctions PATTERN
+# List functions matching PATTERN
+# If present, matched subpatterns surrounded by parenthesis
+# are listed instead of the function names.
+serenity.tools.listFunctions() {
+  local f
+  for f in $(compgen -A function); do
+    [[ "$f" =~ $1 ]] && {
+      if [[ ${#BASH_REMATCH[@]} -gt 1 ]]; then
+        echo "${BASH_REMATCH[*]:1}"
+      else
+        echo "$f"
+      fi
+    }
+  done
+}

@@ -17,20 +17,20 @@
 # Show help text
 
 serenity.actions.help.run() {
-  cat << EOF
-Usage: ${serenity_env_executable} [OPTION]... FILE
+cat << EOM
+Usage: ${serenity_env_executable} ACTION
 
-Options and arguments:
+Actions:
 
-  -d              dry-run; don't rename files, only print their new name
-  -t              only test if FILE's name follows a recognizable pattern
-  -o <string>     set output prefix [default: none]
-  -f              do not prompt before overwriting
-  -i              prompt before overwrite
-  -b              backup each existing destination file
-  -n              do not overwrite an existing file
-  -h              show help and exit
+EOM
 
-EOF
-    return 1
+  local actionHelp
+  local line
+
+  for actionHelp in $(serenity.tools.listFunctions '^serenity\.actions\.[^.]+\.help$'); do
+    "$actionHelp" | while IFS= read line; do
+      echo "  $line"
+    done
+    echo
+  done
 }
