@@ -82,7 +82,7 @@ serenity.actions.rename.processFile() {
     outputDirectory="${rename_opt_outputDirectory}"
   fi
 
-  finalName="$(serenity.pipeline.execute serenity.actions.rename.definitions.global "${fileName}" <<< "${fileName}")" || {
+  finalName="$(serenity.pipeline.execute serenity.actions.rename.definitions.global <<< "${fileName}")" || {
     serenity.debug.error "Processing failed!"
     return 1
   }
