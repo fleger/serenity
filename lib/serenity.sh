@@ -37,7 +37,7 @@ serenity.main() {
                           ["formatters"]='serenity\.formatters\.([^.]+)\.run'
                           ["refining"]='serenity\.refiningBackends\.([^.]+)\.run'
                           ["splitters"]='serenity\.splitters\.([^.]+)\.run'
-                          ["tokenizers"]='serenity\tokenizers\.([^.]+)\.run')
+                          ["tokenizers"]='serenity\.tokenizers\.([^.]+)\.run')
 
   local -A serenity_APIs_help=( ["actions"]='serenity.actions.%s.help'
                                 ["aggregators"]='serenity.aggregators.%s.help'
@@ -45,7 +45,7 @@ serenity.main() {
                                 ["formatters"]='serenity.formatters.%s.help'
                                 ["refining"]='serenity.refiningBackends.%s.help'
                                 ["splitters"]='serenity.splitters.%s.help'
-                                ["tokenizers"]='serenitytokenizers.%s.help')
+                                ["tokenizers"]='serenity.tokenizers.%s.help')
 
   # Load the libraries
   local -a libraries=("${serenity_env_lib}/nakedconf.sh"
