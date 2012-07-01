@@ -21,7 +21,7 @@ serenity.splitters.multi.checkRequirements() {
 serenity.splitters.multi.definition() {
   local -i prefix="$1"
   shift
-  serenity.tokens.movePrefix "$prefix" ""
+  serenity.tokens.add serenity.tokens.movePrefix "$prefix" ""
   "$@"
   serenity.tokens.add serenity.tokens.movePrefix "" "$prefix"
 }
