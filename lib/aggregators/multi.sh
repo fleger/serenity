@@ -49,6 +49,7 @@ serenity.aggregators.multi.run() {
     done
     $sameTitle && serenity.tokens.set common::title "$commonTitle"
   fi
+  return 0
 }
 
 serenity.aggregators.multi.stripTitle() {

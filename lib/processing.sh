@@ -35,7 +35,7 @@ serenity.processing.callFilterChain() {
 #
 # Extract tokens from FILENAME.
 #
-# Closures: serenity.main
+# Closures: serenity.main, serenity.pipeline.execute, serenity.tokens.execute
 serenity.processing.tokenization() {
   local inputBuffer="$(< /dev/stdin)"
   local offset=0
@@ -53,10 +53,10 @@ serenity.processing.tokenization() {
     commandLine=("${serenity_conf__tokenizers[@]:${offset}:${length}}")
     offset=$(( ${offset} + ${length} ))
     commandLine[0]="serenity.tokenizers.${commandLine[0]}.run"
-    if serenity.tokens.execute -D "${commandLine[@]}" <<< "${inputBuffer}"; then
+    if serenity.tokens.nestedExecute serenity.tokens.add "${commandLine[@]}" <<< "${inputBuffer}"; then
       serenity.debug.debug "Tokenization: success with ${commandLine[*]}"
       if [ "x$serenity_conf_keepExtension" = "xyes" ]; then
-        serenity.tokens.addToStream "_::extension" "$extension"
+        serenity.tokens.set "_::extension" "$extension"
       fi
      return 0
     else
@@ -67,28 +67,20 @@ serenity.processing.tokenization() {
   return 1
 }
 
+
 # serenity.processing.split
 #
 # Run the splitters.
 #
-# Closure: serenity.main
-serenity.processing.split() {
-  serenity.tokens.execute -S serenity.processing.__split "${@}"
-}
-
-# serenity.processing.__split
-#
-# Run the splitters.
-#
 # Closures: serenity.main, serenity.tokens.execute
-serenity.processing.__split() {
+serenity.processing.split() {
   local i
   local returnCode=1
   for i in "${serenity_conf_splitterPriorities[@]}"; do
     if serenity.splitters."$i".checkRequirements; then
       serenity.debug.debug "Split: running $i splitter"
       serenity.splitters."$i".run "$@"
-      serenity.tokens.addToStream "_::splitter" "$i"
+      serenity.tokens.set "_::splitter" "$i"
       returnCode=0
       break
     fi
@@ -101,16 +93,9 @@ serenity.processing.__split() {
 # serenity.processing.tokenProcessing [TOKEN_TYPE FILTER_CHAIN]...
 #
 # Process the tokens with filter chains.
-serenity.processing.tokenProcessing() {
-  serenity.tokens.execute serenity.processing.__tokenProcessing "$@"
-}
-
-# serenity.processing.__tokenProcessing [TOKEN_TYPE FILTER_CHAIN]...
-#
-# Process the tokens with filter chains.
 #
 # Closure: serenity.tokens.execute
-serenity.processing.__tokenProcessing() {
+serenity.processing.tokenProcessing() {
   # Processing chains unpacking
   local -A tokenProcessing=()
   until [[ "$#" -lt 2 ]]; do
@@ -139,22 +124,16 @@ serenity.processing.__tokenProcessing() {
   done
 }
 
-# serenity.processing.refining BACKEND...
-#
-# Refine the tokens using the first BACKEND that succeed.
-serenity.processing.refining() {
-  serenity.tokens.execute serenity.processing.__refining "$@"
-}
 
 # serenity.processing.__refining BACKEND...
 #
 # Refine the tokens using the first BACKEND that succeed.
 #
 # Closure: serenity.tokens.execute
-serenity.processing.__refining() {
+serenity.processing.refining() {
   local backend
   for backend; do
-    "serenity.refiningBackends.${backend}.run" &&
+    serenity.tokens.nestedExecute serenity.tokens.add "serenity.refiningBackends.${backend}.run" &&
     serenity.debug.debug "Refining: success with ${backend}" &&
     serenity.tokens.set "_::refining_backend" "${backend}" &&
     return 0 ||
@@ -163,19 +142,12 @@ serenity.processing.__refining() {
   return 1
 }
 
-# serenity.processing.aggregate AGGREGATOR...
-#
-# Aggregate the tokens using the first AGGREGATOR that succeed.
-serenity.processing.aggregate() {
-  serenity.tokens.execute serenity.processing.__aggregate "$@"
-}
-
 # serenity.processing.__aggregate AGGREGATOR...
 #
 # Aggregate the tokens using the first AGGREGATOR that succeed.
 #
 # Closure: serenity.tokens.execute
-serenity.processing.__aggregate() {
+serenity.processing.aggregate() {
   local i
   for i; do
     if serenity.aggregators."$i".checkRequirements; then
@@ -185,19 +157,12 @@ serenity.processing.__aggregate() {
   done
 }
 
-# serenity.processing.format FORMATTER [ARG]...
-#
-# Format the tokens to produce the final name.
-serenity.processing.format() {
-  serenity.tokens.execute -S serenity.processing.__format "$@"
-}
-
 # serenity.processing.__format FORMATTER [ARG]...
 #
 # Format the tokens to produce the final name.
 #
 # Closure: serenity.tokens.execute
-serenity.processing.__format() {
+serenity.processing.format() {
   # Note: Shouldn't this be "${@:1}"?
   "serenity.formatters.${1}.run" "${@:2}"
 }

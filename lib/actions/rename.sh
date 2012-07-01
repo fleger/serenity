@@ -102,31 +102,35 @@ serenity.actions.rename.processFile() {
 # Global rename process definition
 # Closures: serenity.main, serenity.pipeline.execute
 serenity.actions.rename.definitions.global() {
-  local -a flat=()
-  local key
   serenity.pipeline.add serenity.debug.trace serenity.processing.callFilterChain "$serenity_conf_globalPreprocessing"
   # FIXME: pass configuration
-  serenity.pipeline.add serenity.debug.trace serenity.processing.tokenization
+  serenity.pipeline.add serenity.debug.trace serenity.tokens.execute serenity.actions.rename.definitions.tokens
+  serenity.pipeline.add serenity.debug.trace serenity.processing.callFilterChain "$serenity_conf_globalPostrename"
+}
+
+serenity.actions.rename.definitions.tokens() {
+  local -a flat=()
+  local key
+  serenity.tokens.add serenity.processing.tokenization
   flat=()
   for key in "${!serenity_conf_tokenPreprocessing[@]}"; do
     flat+=("${key}" "${serenity_conf_tokenPreprocessing[${key}]}")
   done
-  serenity.pipeline.add serenity.debug.trace serenity.processing.tokenProcessing "${flat[@]}"
-  serenity.pipeline.add serenity.debug.trace serenity.processing.split serenity.pipeline.execute serenity.actions.rename.definitions.perEpisode
-  serenity.pipeline.add serenity.debug.trace serenity.processing.aggregate "${serenity_conf_aggregatorPriorities[@]}"
+  serenity.tokens.add serenity.processing.tokenProcessing "${flat[@]}"
+  serenity.tokens.add serenity.processing.split serenity.actions.rename.definitions.perEpisode
+  serenity.tokens.add serenity.processing.aggregate "${serenity_conf_aggregatorPriorities[@]}"
   flat=()
   for key in "${!serenity_conf_tokenPostprocessing[@]}"; do
     flat+=("${key}" "${serenity_conf_tokenPostprocessing[${key}]}")
   done
-  serenity.pipeline.add serenity.debug.trace serenity.processing.tokenProcessing "${flat[@]}"
-  serenity.pipeline.add serenity.debug.trace serenity.processing.format "${serenity_conf_formatting[@]}"
-  serenity.pipeline.add serenity.debug.trace serenity.processing.callFilterChain "$serenity_conf_globalPostrename"
+  serenity.tokens.add serenity.processing.tokenProcessing "${flat[@]}"
+  serenity.tokens.add serenity.processing.format "${serenity_conf_formatting[@]}"
 }
 
 # Per-episode rename process definition
 # Closures: serenity.main, serenity.pipeline.execute
 serenity.actions.rename.definitions.perEpisode() {
-  serenity.pipeline.add serenity.debug.trace serenity.processing.refining "${serenity_conf_refiningBackends[@]}"
+  serenity.tokens.add serenity.processing.refining "${serenity_conf_refiningBackends[@]}"
 }
 
 # serenity.actions.rename.move SOURCE DEST

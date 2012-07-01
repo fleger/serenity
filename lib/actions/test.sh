@@ -48,5 +48,9 @@ serenity.actions.test.processFile() {
 serenity.actions.test.definitions.global() {
   serenity.pipeline.add serenity.debug.trace serenity.processing.callFilterChain "$serenity_conf_globalPreprocessing"
   # FIXME: pass configuration
-  serenity.pipeline.add serenity.debug.trace serenity.processing.tokenization
+  serenity.pipeline.add serenity.debug.trace serenity.tokens.execute serenity.actions.test.definitions.tokens
+}
+
+serenity.actions.test.definitions.tokens() {
+  serenity.tokens.add serenity.processing.tokenization
 }

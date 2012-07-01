@@ -58,3 +58,10 @@ serenity.tools.listFunctions() {
     }
   done
 }
+
+serenity.tools.localUnset() {
+  local v
+  for v; do
+    unset -v "$v"
+  done
+}

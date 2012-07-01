@@ -18,12 +18,20 @@ serenity.splitters.multi.checkRequirements() {
   [[ -n "$(serenity.tokens.get 1::episode)" ]]
 }
 
+serenity.splitters.multi.definition() {
+  local -i prefix="$1"
+  shift
+  serenity.tokens.movePrefix "$prefix" ""
+  "$@"
+  serenity.tokens.add serenity.tokens.movePrefix "" "$prefix"
+}
+
 serenity.splitters.multi.run() {
-  local i=1
+  local -i i=1
   while [[ -n "$(serenity.tokens.get ${i}::episode)" ]]; do
-    serenity.tokens.serialize | serenity.tokens.execute serenity.tokens.copyPrefix "${i}" "" | "${@}" | serenity.tokens.filter.copyPrefix "" "$i"
+    serenity.tokens.nestedExecute serenity.splitters.multi.definition "${i}" "${@}"
     i=$(( i + 1 ))
   done
   i=$(( i - 1 ))
-  serenity.tokens.addToStream "_::episode_count" "$i"
+  serenity.tokens.set "_::episode_count" "$i"
 }

@@ -16,105 +16,133 @@
 
 # Tokens
 
-# serenity.tokens.execute [OPTION].. FUNCTION [ARG]...
-#
-# Deserialize the tokens from STDIN, execute FUNCTION with ARGs,
-# serialize the tokens to STDOUT.
-#
-# Options:
-#   -S    Do not perform token serialization after calling FUNCTION
-#   -D    Do not perform token deserialization before calling FUNCTION
-#
-# Upvalues:
-#   tokens_current    Associative array containing the tokens
+# ----------------------
+# Context core functions
+# ----------------------
 serenity.tokens.execute() {
-  # Options
-  local _tokens_opt_serialize=true
-  local _tokens_opt_deserialize=true
+  local -a __inits=()
+  local -a __initsLengths=()
+  local -a __exits=()
+  local -a __exitsLengths=()
+  local -a __functions=()
+  local -a __functionsLengths=()
 
-  # Parse commandline
+  "$@"
+
+  serenity.tokens.__run
+}
+
+serenity.tokens.add() {
+  local -r FUNCTION=0
+  local -r INIT=1
+  local -r EXIT=2
+  
   local opt
   local OPTARG
   local OPTIND=1
-  while getopts 'SD' opt; do
+  local mode="$FUNCTION"
+  while getopts ie opt; do
     case "$opt" in
-      S) _tokens_opt_serialize=false;;
-      D) _tokens_opt_deserialize=false;;
+      i) mode="$INIT";;
+      e) mode="$EXIT";;
     esac
   done
   shift $((${OPTIND} - 1))
 
-  unset opt
-  unset OPTARG
-  unset OPTIND
+  if [ $# -gt 0 ]; then
+    case "$mode" in
+      "$FUNCTION")
+        __functionsLengths+=($#)
+        __functions+=("$@");;
+      "$INIT")
+        __initsLengths+=($#)
+        __inits+=("$@");;
+      "$EXIT")
+        __exitsLengths+=($#)
+        __exits+=("$@");;
+    esac
+  fi
+}
+
+serenity.tokens.__run() {
+  local -i offset
+  local -i length
+  local key
+  local tokens_phase=""
+  local retval
+  
+  offset=0
+  tokens_phase="init"
+  local -A tokens_init=()
+  for length in "${__initsLengths[@]}"; do
+    "${__inits[@]:$offset:length}"
+    retval=$?
+    [[ $retval == 0 ]] || return $retval
+    offset=$(( $offset + $length ))
+  done
 
   local -A tokens_current=()
-  "${_tokens_opt_deserialize}" &&
-  serenity.tokens.deserialize
-
-  "$@" && {
-    "${_tokens_opt_serialize}" &&
-    serenity.tokens.serialize
-    return 0
-  }
-}
-
-# serenity.tokens.deserialize
-#
-# Deserialize the tokens from STDIN into tokens_current.
-serenity.tokens.deserialize() {
-  local key=""
-  local tmp=""
-  local -r STATE_KEY=0
-  local -r STATE_VALUE=1
-  local state="$STATE_KEY"
-  while IFS= read -r tmp; do
-    case "${state}" in
-      "${STATE_KEY}")
-        key="${tmp}"
-        state="${STATE_VALUE}";;
-      "${STATE_VALUE}")
-        tokens_current["${key}"]="${tmp}"
-        state="${STATE_KEY}";;
-    esac
+  for key in "${!tokens_init[@]}"; do
+    tokens_current["$key"]="${tokens_init["$key"]}"
   done
-}
+  serenity.tools.localUnset tokens_init
+  
+  offset=0
+  tokens_phase="body"
+  for length in "${__functionsLengths[@]}"; do
+    "${__functions[@]:$offset:length}"
+    retval=$?
+    [[ $retval == 0 ]] || return $retval
+    offset=$(( $offset + $length ))
+  done
 
-# serenity.tokens.serialize
-#
-# Serialize the tokens from tokens_current to STDOUT.
-serenity.tokens.serialize() {
-  local key=""
+  local -A tokens_exit=()
   for key in "${!tokens_current[@]}"; do
-    serenity.tokens.addToStream "${key}" "${tokens_current[${key}]}"
+    tokens_exit["$key"]="${tokens_current["$key"]}"
+  done
+  serenity.tools.localUnset tokens_current
+
+  offset=0
+  tokens_phase="exit"
+  for length in "${__exitsLengths[@]}"; do
+    "${__exits[@]:$offset:length}"
+    retval=$?
+    [[ $retval == 0 ]] || return $retval
+    offset=$(( $offset + $length ))
   done
 }
 
-# serenity.tokens.get [OPTION]... TOKEN_TYPE
-#
-# Get the value of TOKEN_TYPE in tokens_current.
-# If the value is not set, then TOKEN_TYPE's default value
-# defined in serenity_conf_tokenDefaults is returned.
-#
-# Options:
-#   -n    Do not perform default value look up
-#
-# Closures: serenity.tokens.execute, serenity.main
+# ----------------------------------
+# Basic token manipulation functions
+# ----------------------------------
 serenity.tokens.get() {
+  local -r FUNCTION=0
+  local -r INIT=1
+  local -r EXIT=2
+
   local opt
   local OPTARG
   local OPTIND=1
+  local mode="$FUNCTION"
   local noDefault=false
-  while getopts n opt; do
+  while getopts ien opt; do
     case "$opt" in
+      i) mode="$INIT";;
+      e) mode="$EXIT";;
       n) noDefault=true;;
     esac
   done
   shift $((${OPTIND} - 1))
 
-  if serenity.tokens.isSet "${1}"; then
-    echo "${tokens_current["${1}"]}"
-  elif ! $noDefault; then
+  case "$mode" in
+    "$FUNCTION")
+      serenity.tokens.isSet "${1}" && echo "${tokens_current["${1}"]}" && return 0;;
+    "$INIT")
+      serenity.tokens.isSet -i "${1}" && echo "${tokens_init["${1}"]}" && return 0;;
+    "$EXIT")
+      serenity.tokens.isSet -e "${1}" && echo "${tokens_exit["${1}"]}" && return 0;;
+  esac
+  if ! $noDefault; then
     if serenity.tools.contains "${1%*::}" "${!serenity_conf_tokenDefaults[@]}"; then
       echo "${serenity_conf_tokenDefaults["${1%*::}"]}"
     else
@@ -122,15 +150,37 @@ serenity.tokens.get() {
     fi
   fi
 }
-
 # serenity.tokens.set TOKEN_TYPE TOKEN_VALUE
 #
 # Set the value of TOKEN_TYPE to TOKEN_VALUE.
 #
 # Closure: serenity.tokens.execute
 serenity.tokens.set() {
-  serenity.debug.debug "Tokens: set ${1} to ${2}"
-  tokens_current["${1}"]="${2}"
+  local -r FUNCTION=0
+  local -r INIT=1
+  local -r EXIT=2
+
+  local opt
+  local OPTARG
+  local OPTIND=1
+  local mode="$FUNCTION"
+  while getopts ien opt; do
+    case "$opt" in
+      i) mode="$INIT";;
+      e) mode="$EXIT";;
+    esac
+  done
+  shift $((${OPTIND} - 1))
+
+  case "$mode" in
+    "$FUNCTION")
+      tokens_current["${1}"]="${2}";;
+    "$INIT")
+      tokens_init["${1}"]="${2}";;
+    "$EXIT")
+      tokens_exit["${1}"]="${2}";;
+  esac
+  serenity.debug.debug "Tokens: set $1 to $2"
 }
 
 # serenity.tokens.isSet TOKEN_TYPE
@@ -139,8 +189,64 @@ serenity.tokens.set() {
 #
 # Closure: serenity.tokens.execute
 serenity.tokens.isSet() {
-  serenity.tools.contains "${1}" "${!tokens_current[@]}"
+  local -r FUNCTION=0
+  local -r INIT=1
+  local -r EXIT=2
+
+  local opt
+  local OPTARG
+  local OPTIND=1
+  local mode="$FUNCTION"
+  while getopts ien opt; do
+    case "$opt" in
+      i) mode="$INIT";;
+      e) mode="$EXIT";;
+    esac
+  done
+  shift $((${OPTIND} - 1))
+
+  case "$mode" in
+    "$FUNCTION")
+      serenity.tools.contains "${1}" "${!tokens_current[@]}";;
+    "$INIT")
+      serenity.tools.contains "${1}" "${!tokens_init[@]}";;
+    "$EXIT")
+      serenity.tools.contains "${1}" "${!tokens_exit[@]}";;
+  esac
 }
+
+serenity.tokens.remove() {
+  local -r FUNCTION=0
+  local -r INIT=1
+  local -r EXIT=2
+
+  local opt
+  local OPTARG
+  local OPTIND=1
+  local mode="$FUNCTION"
+  while getopts ien opt; do
+    case "$opt" in
+      i) mode="$INIT";;
+      e) mode="$EXIT";;
+    esac
+  done
+  shift $((${OPTIND} - 1))
+
+  case "$mode" in
+    "$FUNCTION")
+      unset tokens_current["$1"];;
+    "$INIT")
+      unset tokens_init["$1"];;
+    "$EXIT")
+      unset tokens_exit["$1"];;
+  esac
+
+  serenity.debug.debug "Tokens: removed $1"
+}
+
+# ---------------
+# Prefix handling
+# ---------------
 
 # serenity.tokens.copyPrefix SOURCE DEST
 #
@@ -162,13 +268,53 @@ serenity.tokens.copyPrefix() {
   done
 }
 
-# serenity.tokens.addToStream TOKEN_TYPE TOKEN_VALUE
-#
-# Serialize TOKEN_TYPE and TOKEN_VALUE to STDOUT.
-serenity.tokens.addToStream() {
-  echo "$1"
-  echo "$2"
+serenity.tokens.deletePrefix() {
+  local prefix="$1"
+  [ -n "$prefix" ] && prefix="$prefix::"
+
+  local key
+  for key in "${!tokens_current[@]}"; do
+    if [[ (-n "$prefix" && "$key" == "$prefix"*) || (-z "$prefix" && "$key" != *::*) ]]; then
+      serenity.tokens.remove "$key"
+    fi
+  done
 }
+
+serenity.tokens.movePrefix() {
+  serenity.tokens.copyPrefix "$1" "$2"
+  serenity.tokens.deletePrefix "$1"
+}
+
+# ---------------------------------
+# Nested context convenience helper
+# ---------------------------------
+serenity.tokens.nestedExecute() {
+  serenity.tokens.execute serenity.tokens.__nestedExecution "$@"
+}
+
+serenity.tokens.__nestedExecution() {
+  serenity.tokens.add -i serenity.tokens.phaseAwareMerge
+  "$@"
+  serenity.tokens.add -e serenity.tokens.phaseAwareMerge
+}
+
+serenity.tokens.phaseAwareMerge() {
+  local k
+  serenity.debug.debug "Tokens.phaseAwareMerge $tokens_phase"
+  case "$tokens_phase" in
+    "init")
+      for k in "${!tokens_current[@]}"; do
+        serenity.tokens.set -i "$k" "${tokens_current["$k"]}"
+      done;;
+    "exit")
+      for k in "${!tokens_exit[@]}"; do
+        serenity.tokens.set "$k" "${tokens_exit["$k"]}"
+      done;;
+    *)
+      return 1;;
+  esac
+}
+
 
 # serenity.tokens.copyCommon DEST SOURCE...
 #

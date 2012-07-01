@@ -18,13 +18,22 @@ serenity.splitters.range.checkRequirements() {
   [[ -n "$(serenity.tokens.get first_episode)" ]] && [[ -n "$(serenity.tokens.get last_episode)" ]]
 }
 
+serenity.splitters.range.definition() {
+  local -i episodeNumber="$1"
+  shift
+  local -i prefix="$1"
+  shift
+  serenity.tokens.add serenity.tokens.set episode "$episodeNumber"
+  "$@"
+  serenity.tokens.add serenity.tokens.movePrefix "" "$prefix"
+}
+
 serenity.splitters.range.run() {
-  local i=0
-  local n
+  local -i i=0
+  local -i n
   for n in $(seq "$(serenity.tokens.get first_episode)" "$(serenity.tokens.get last_episode)"); do
     i=$(( $i + 1 ))
-    serenity.tokens.set episode "${n}"
-    serenity.tokens.serialize | "${@}" | serenity.tokens.execute serenity.tokens.copyPrefix "" "$i"
+    serenity.tokens.nestedExecute serenity.splitters.range.definition "$n" "$i" "$@"
   done
-  serenity.tokens.addToStream "_::episode_count" "$i"
+  serenity.tokens.set "_::episode_count" "$i"
 }
