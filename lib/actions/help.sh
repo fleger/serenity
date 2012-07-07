@@ -24,7 +24,7 @@ help [MODULE_TYPE]...
 
   Arguments:
 
-    MODULE_TYPE     show help for modules of MODULE_TYPE. Use the 'ist action to list the available
+    MODULE_TYPE     show help for modules of MODULE_TYPE. Use the 'list' action to list the available
                     module types. [default: 'actions']
 EOM
 }
