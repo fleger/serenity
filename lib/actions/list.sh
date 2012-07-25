@@ -20,7 +20,7 @@ serenity.actions.list.help() {
 cat << EOM
 list [MODULE_TYPE]
 
-List modules of the given MODULE_TYPE. If MODULE_TYPE is ommited, list the available module types.
+  List modules of the given MODULE_TYPE. If MODULE_TYPE is ommited, list the available module types.
 EOM
 }
 
