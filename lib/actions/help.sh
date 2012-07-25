@@ -56,7 +56,7 @@ serenity.actions.help.run() {
       *.*) # Specific module
         moduleType="${item%.*}"
         moduleName="${item##*.}"
-        if ! serenity.tools.contains "${!sections["$moduleType"]}" || [[ -n "${sections["$moduleType"]}" ]]; then
+        if ! serenity.tools.contains "$moduleType" "${!sections[@]}" || [[ -n "${sections["$moduleType"]}" ]]; then
           sections["$moduleType"]+=" $moduleName"
         fi
         ;;
