@@ -124,6 +124,17 @@ serenity.processing.tokenProcessing() {
   done
 }
 
+serenity.processing.refiningContext() {
+  local commandLine=()
+  while [[ "$1" != "--" ]]; do
+    serenity.tools.isFunction "serenity.refiningBackends.${1}.context" &&
+    commandLine+=("serenity.refiningBackends.${1}.context")
+    shift
+  done
+  shift
+  "${commandLine[@]}" "$@"
+}
+
 
 # serenity.processing.__refining BACKEND...
 #

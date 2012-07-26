@@ -56,6 +56,10 @@ serenity.actions.rename.run() {
   done
   shift $((${OPTIND} - 1))
 
+  serenity.processing.refiningContext "${serenity_conf_refiningBackends[@]}" -- serenity.actions.rename._run "$@"
+}
+
+serenity.actions.rename._run() {
   # Process files
   local f
   for f; do

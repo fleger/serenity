@@ -16,32 +16,37 @@
 
 # TVRage QuickInfo refining backend
 
+serenity.refiningBackends.tvrage.context() {
+  local -r serenity_refiningBackends_tvrage_requestFormat="http://services.tvrage.com/tools/quickinfo.php?show=%s&ep=%dx%d"
+  local -ar serenity_refiningBackends_tvrage_fieldTypes=(show season episode)
+  local -Ar serenity_refiningBackends_tvrage_sedExtractors=([show]='s/^Show Name@(.+)$/\1/p'
+    [title]='s/^Episode Info@[0-9]+x[0-9]+\^([^\^]+)\^.*$/\1/p'
+    [premiered]='s/^Premiered@([0-9]+)$/\1/p'
+    [started]='s/^Started@(.+)$/\1/p'
+    [ended]='s/^Ended@(.+)$/\1/p'
+    [date]='s/^Episode Info@[0-9]+x[0-9]+\^[^\^]+\^(.+)$/\1/p'
+    [country]='s/^Country@(.+)$/\1/p'
+    [status]='s/^Status@(.+)$/\1/p'
+    [classification]='s/^Classification@(.+)$/\1/p'
+    [genres]='s/^Genres@(.+)$/\1/p'
+    [network]='s/^Network@(.+)$/\1/p'
+    [runtime]='s/^Runtime@([0-9]+)$/\1/p')
+
+  "$@"
+}
+
 serenity.refiningBackends.tvrage.run() {
-  local -r requestFormat="http://services.tvrage.com/tools/quickinfo.php?show=%s&ep=%dx%d"
-  local -ar fieldTypes=(show season episode)
   local -a fields=()
   local tokenType=""
   local request=""
-  local -Ar sedExtractors=([show]='s/^Show Name@(.+)$/\1/p'
-                           [title]='s/^Episode Info@[0-9]+x[0-9]+\^([^\^]+)\^.*$/\1/p'
-                           [premiered]='s/^Premiered@([0-9]+)$/\1/p'
-                           [started]='s/^Started@(.+)$/\1/p'
-                           [ended]='s/^Ended@(.+)$/\1/p'
-                           [date]='s/^Episode Info@[0-9]+x[0-9]+\^[^\^]+\^(.+)$/\1/p'
-                           [country]='s/^Country@(.+)$/\1/p'
-                           [status]='s/^Status@(.+)$/\1/p'
-                           [classification]='s/^Classification@(.+)$/\1/p'
-                           [genres]='s/^Genres@(.+)$/\1/p'
-                           [network]='s/^Network@(.+)$/\1/p'
-                           [runtime]='s/^Runtime@([0-9]+)$/\1/p')
 
-  for tokenType in "${fieldTypes[@]}"; do
+  for tokenType in "${serenity_refiningBackends_tvrage_fieldTypes[@]}"; do
     fields+=("$(serenity.filters.urlEncode < <(serenity.tokens.get "${tokenType}"))")
   done
 
-  request="$(printf "${requestFormat}" "${fields[@]}")" &&
+  request="$(printf "${serenity_refiningBackends_tvrage_requestFormat}" "${fields[@]}")" &&
   serenity.debug.debug "TVRage: generated request: $request" || {
-    serenity.debug.warning "TVRage: failed to generate request ${requestFormat} ${fields[*]}"
+    serenity.debug.warning "TVRage: failed to generate request ${serenity_refiningBackends_tvrage_requestFormat} ${fields[*]}"
     return 1
   }
 
@@ -58,8 +63,8 @@ serenity.refiningBackends.tvrage.run() {
     return 1
   }
 
-  for tokenType in "${!sedExtractors[@]}"; do
-    serenity.debug.debug "TVRage: using expression ${sedExtractors["${tokenType}"]} for $tokenType"
-    serenity.tokens.set "${tokenType}" "$(sed -n -r -e "${sedExtractors["${tokenType}"]}" <<< "${response}")"
+  for tokenType in "${!serenity_refiningBackends_tvrage_sedExtractors[@]}"; do
+    serenity.debug.debug "TVRage: using expression ${serenity_refiningBackends_tvrage_sedExtractors["${tokenType}"]} for $tokenType"
+    serenity.tokens.set "${tokenType}" "$(sed -n -r -e "${serenity_refiningBackends_tvrage_sedExtractors["${tokenType}"]}" <<< "${response}")"
   done
 }
