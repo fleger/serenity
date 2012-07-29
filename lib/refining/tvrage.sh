@@ -19,7 +19,8 @@
 serenity.refiningBackends.tvrage.context() {
   local -r serenity_refiningBackends_tvrage_requestFormat="http://services.tvrage.com/tools/quickinfo.php?show=%s&ep=%dx%d"
   local -ar serenity_refiningBackends_tvrage_fieldTypes=(show season episode)
-  local -Ar serenity_refiningBackends_tvrage_sedExtractors=([show]='s/^Show Name@(.+)$/\1/p'
+  local -Ar serenity_refiningBackends_tvrage_sedExtractors=(
+    [show]='s/^Show Name@(.+)$/\1/p'
     [title]='s/^Episode Info@[0-9]+x[0-9]+\^([^\^]+)\^.*$/\1/p'
     [premiered]='s/^Premiered@([0-9]+)$/\1/p'
     [started]='s/^Started@(.+)$/\1/p'
@@ -30,7 +31,8 @@ serenity.refiningBackends.tvrage.context() {
     [classification]='s/^Classification@(.+)$/\1/p'
     [genres]='s/^Genres@(.+)$/\1/p'
     [network]='s/^Network@(.+)$/\1/p'
-    [runtime]='s/^Runtime@([0-9]+)$/\1/p')
+    [runtime]='s/^Runtime@([0-9]+)$/\1/p'
+  )
 
   "$@"
 }
