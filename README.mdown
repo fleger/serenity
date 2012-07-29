@@ -9,8 +9,10 @@ Installation
 Dependencies
 ------------
 - bash >= 4.0
-- curl (for TVRage backend)
-- html-xml-utils (for TVRage backend)
+- curl (for the TVRage & TheTVDB backends)
+- html-xml-utils (for the TVRage backend)
+- xmlstarlet (for the TheTVDB backend)
+- libarchive (for the TheTVDB backend)
 - make (build)
 
 Procedure
