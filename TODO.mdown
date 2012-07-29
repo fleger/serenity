@@ -5,6 +5,5 @@ In no particular order:
 
 - Document the various APIs
 - Better comments
-- Bring back the -l option from gen2 (obviously in a different form)
 - Commandline token override
 - Tests
