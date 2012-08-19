@@ -27,17 +27,22 @@ serenity.processing.callFilterChain() {
   fi
 }
 
-# serenity.processing.tokenization
+# serenity.processing.callFilterChainOnToken CHAIN TOKEN
 #
-# STDIN: FILENAME
+# Call the given filter CHAIN on TOKEN
 #
-# STDOUT: serialized tokens
+# Closures: serenity.tokens.execute
+serenity.processing.callFilterChainOnToken() {
+  serenity.tokens.set "$2" "$(serenity.processing.callFilterChain "$1" < <(serenity.tokens.get "$2"))"
+}
+
+# serenity.processing.tokenization INPUT_TOKEN
 #
-# Extract tokens from FILENAME.
+# Extract tokens from INPUT_TOKEN.
 #
-# Closures: serenity.main, serenity.pipeline.execute, serenity.tokens.execute
+# Closures: serenity.main, serenity.tokens.execute
 serenity.processing.tokenization() {
-  local inputBuffer="$(< /dev/stdin)"
+  local inputBuffer="$(serenity.tokens.get "$1")"
   local offset=0
   local length
   local -a commandLine=()
@@ -107,6 +112,7 @@ serenity.processing.tokenProcessing() {
 
   # Processing
   local tokenType
+  # FIXME: private API violation
   for tokenType in "${!tokens_current[@]}"; do
     if [[ "$tokenType" != _::* ]]; then
       if serenity.tools.contains "${tokenType#*::}" "${!tokenProcessing[@]}"; then
@@ -136,7 +142,7 @@ serenity.processing.refiningContext() {
 }
 
 
-# serenity.processing.__refining BACKEND...
+# serenity.processing.refining BACKEND...
 #
 # Refine the tokens using the first BACKEND that succeed.
 #
@@ -153,7 +159,7 @@ serenity.processing.refining() {
   return 1
 }
 
-# serenity.processing.__aggregate AGGREGATOR...
+# serenity.processing.aggregate AGGREGATOR...
 #
 # Aggregate the tokens using the first AGGREGATOR that succeed.
 #
@@ -168,12 +174,14 @@ serenity.processing.aggregate() {
   done
 }
 
-# serenity.processing.__format FORMATTER [ARG]...
+# serenity.processing.format OUTPUT_TOKEN FORMATTER [ARG]...
 #
 # Format the tokens to produce the final name.
 #
 # Closure: serenity.tokens.execute
 serenity.processing.format() {
+  local outputTokenType="$1"
+  shift
   # Note: Shouldn't this be "${@:1}"?
-  "serenity.formatters.${1}.run" "${@:2}"
+  serenity.tokens.set "$outputTokenType" "$("serenity.formatters.${1}.run" "${@:2}")"
 }

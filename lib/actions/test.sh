@@ -26,31 +26,20 @@ EOM
 }
 
 serenity.actions.test.run() {
-  serenity.actions.test.processFile "${1}" || {
+  serenity.tokens.execute serenity.actions.test.definitions.global "${1}" || {
     serenity.debug.info "Not a recognizable filename."
     return 1
   }
   serenity.debug.info "Done."
 }
 
-# serenity.actions.test.processFile FILE
-# Process FILE
-serenity.actions.test.processFile() {
-  serenity.debug.info "Processing ${1}..."
-  local fileName="$(basename "${1}")"
-  serenity.pipeline.execute serenity.actions.test.definitions.global <<< "${fileName}"
-}
-
-# Processing definitions
-
-# Global test process definition
-# Closures: serenity.main, serenity.pipeline.execute
+# serenity.actions.test.definitions.global FILE
+#
+# Global test process definition for FILE
+#
+# Closures: serenity.main, serenity.tokens.execute
 serenity.actions.test.definitions.global() {
-  serenity.pipeline.add serenity.debug.trace serenity.processing.callFilterChain "$serenity_conf_globalPreprocessing"
-  # FIXME: pass configuration
-  serenity.pipeline.add serenity.debug.trace serenity.tokens.execute serenity.actions.test.definitions.tokens
-}
-
-serenity.actions.test.definitions.tokens() {
-  serenity.tokens.add serenity.processing.tokenization
+  serenity.tokens.add serenity.tokens.set "_::input_filename" "$(basename "${1}")"
+  serenity.tokens.add serenity.processing.callFilterChainOnToken "$serenity_conf_globalPreprocessing" "_::input_filename"
+  serenity.tokens.add serenity.processing.tokenization "_::input_filename"
 }
