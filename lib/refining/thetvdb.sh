@@ -36,6 +36,7 @@ serenity.refiningBackends.thetvdb.context() {
   )
 
   local -a serenity_refiningBackends_thetvdb_upToDateSeriesIdls=()
+  local -A serenity_refiningBackends_thetvdb_cachedSeriesIdls=()
   local serenity_refiningBackends_thetvdb_initialized=false
   local -i serenity_refiningBackends_thetvdb_fetchedUpdate="$SERENITY_REFININGBACKENDS_THETVDB_UPDATE_NONE"
   local -a serenity_refiningBackends_thetvdb_zipMirrors=()
@@ -64,7 +65,8 @@ serenity.refiningBackends.thetvdb.initMirrors() {
   local mirrorPath
   local -i typeMask
 
-  serenity.refiningBackends.thetvdb.fetchMirrors || return 1
+  local mirrorFile="$SERENITY_REFININGBACKENDS_THETVDB_CACHE_PATH/mirrors.xml"
+  serenity.refiningBackends.thetvdb.fetchMirrors "$mirrorFile" || return 1
 
   while read mirrorPath typeMask; do
     if [[ $typeMask -ge $ZIP_FILES ]]; then
@@ -79,15 +81,20 @@ serenity.refiningBackends.thetvdb.initMirrors() {
       serenity_refiningBackends_thetvdb_xmlMirrors+=("$mirrorPath")
       typeMask=$(($typeMask - $XML_FILES))
     fi
-  done < <(xmlstarlet sel -T -t -m "/Mirrors/Mirror" -v "mirrorpath" -o " " -v 'typemask' -n < \
-            "$SERENITY_REFININGBACKENDS_THETVDB_CACHE_PATH/mirrors.xml")
+  done < <(serenity.tools.lockFile -s "$mirrorFile" \
+           xmlstarlet sel -T -t -m "/Mirrors/Mirror" -v "mirrorpath" -o " " -v 'typemask' -n < \
+           "$mirrorFile")
 }
 
 serenity.refiningBackends.thetvdb.fetchMirrors() {
-  if [[ ! -s "$SERENITY_REFININGBACKENDS_THETVDB_CACHE_PATH/mirrors.xml" ]]; then
+  serenity.tools.lockFile "$1" serenity.refiningBackends.thetvdb.__fetchMirrors "$1"
+}
+
+serenity.refiningBackends.thetvdb.__fetchMirrors() {
+  if [[ ! -s "$1" ]]; then
     serenity.debug.debug "TheTVDB: fetching mirrors from www.thetvdb.com"
     curl -s "http://www.thetvdb.com/api/${SERENITY_REFININGBACKENDS_THETVDB_API_KEY}/mirrors.xml" > \
-      "$SERENITY_REFININGBACKENDS_THETVDB_CACHE_PATH/mirrors.xml" || return 1
+      "$1" || return 1
   fi
 }
 
@@ -110,14 +117,18 @@ serenity.refiningBackends.thetvdb.run() {
     }
   fi
 
-  local -a seriesIdl=()
+  local seriesIdl
+  local show="$(serenity.tokens.get "show")"
 
-  readarray -t seriesIdl < <(serenity.refiningBackends.thetvdb.getSeriesIdl) || {
+  serenity.refiningBackends.thetvdb.getSeriesIdl "$show" || {
     serenity.debug.warning "TheTVDB: failed to get series Id & language"
     return 2
   }
 
-  serenity.refiningBackends.thetvdb.getEpisode "${seriesIdl[0]}" "${seriesIdl[1]}"
+  serenity.debug.debug "TheTVDB: idl=${serenity_refiningBackends_thetvdb_cachedSeriesIdls["$show"]}"
+
+  serenity.refiningBackends.thetvdb.getEpisode "${serenity_refiningBackends_thetvdb_cachedSeriesIdls["$show"]%-*}" \
+                                               "${serenity_refiningBackends_thetvdb_cachedSeriesIdls["$show"]##*-}"
 
   serenity.tokens.isSet "title" || {
     serenity.debug.warning "TheTVDB: title not set. This may be due to a bad season/episode number."
@@ -243,8 +254,15 @@ serenity.refiningBackends.thetvdb.pickZipMirror() {
 }
 
 serenity.refiningBackends.thetvdb.getSeriesIdl() {
+  if ! serenity.tools.contains "$1" "${!serenity_refiningBackends_thetvdb_cachedSeriesIdls[@]}"; then
+    serenity.debug.debug "TheTVDB: $1 idl not in cache"
+    serenity_refiningBackends_thetvdb_cachedSeriesIdls["$1"]="$(serenity.refiningBackends.thetvdb.fetchSeriesIdl "$1")"
+  fi
+}
+
+serenity.refiningBackends.thetvdb.fetchSeriesIdl() {
   local language="$(serenity.filters.urlEncode <<< "$SERENITY_REFININGBACKENDS_THETVDB_SEARCH_LANGUAGE")"
-  local show="$(serenity.filters.urlEncode < <(serenity.tokens.get "show"))"
+  local show="$(serenity.filters.urlEncode <<< "$1")"
   curl -s "http://www.thetvdb.com/api/GetSeries.php?seriesname=$show&language=$language" |
-    xmlstarlet sel -T -t -m "/Data/Series[1]" -v "seriesid" -n -v 'language'
+    xmlstarlet sel -T -t -m "/Data/Series[1]" -v "seriesid" -o "-" -v 'language'
 }

@@ -65,3 +65,26 @@ serenity.tools.localUnset() {
     unset -v "$v"
   done
 }
+
+serenity.tools.lockFile() {
+  local opt
+  local OPTARG
+  local -i OPTIND=1
+  local lockType="-x"
+  while getopts s opt; do
+    case "$opt" in
+      s) lockType="-s";;
+    esac
+  done
+  shift $((${OPTIND} - 1))
+
+  local lockFile="$1"
+  local -i returnCode="0"
+
+  shift
+  exec 8>>"$lockFile"
+  flock "$lockType" 8
+  "$@" || returnCode=1
+  exec 8>&-
+  return $returnCode
+}
