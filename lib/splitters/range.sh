@@ -23,9 +23,9 @@ serenity.splitters.range.definition() {
   shift
   local -i prefix="$1"
   shift
-  serenity.tokens.add serenity.tokens.set episode "$episodeNumber"
+  serenity.tokens- serenity.tokens.set episode "$episodeNumber"
   "$@"
-  serenity.tokens.add serenity.tokens.movePrefix "" "$prefix"
+  serenity.tokens- serenity.tokens.movePrefix "" "$prefix"
 }
 
 serenity.splitters.range.run() {
@@ -33,7 +33,7 @@ serenity.splitters.range.run() {
   local -i n
   for n in $(seq "$(serenity.tokens.get first_episode)" "$(serenity.tokens.get last_episode)"); do
     i=$(( $i + 1 ))
-    serenity.tokens.nestedExecute serenity.splitters.range.definition "$n" "$i" "$@"
+    serenity.tokens.nested: serenity.splitters.range.definition "$n" "$i" "$@"
   done
   serenity.tokens.set "_::episode_count" "$i"
 }

@@ -26,7 +26,7 @@ EOM
 }
 
 serenity.actions.test.run() {
-  serenity.tokens.execute serenity.actions.test.definitions.global "${1}" || {
+  serenity.tokens: serenity.actions.test.definitions.global "${1}" || {
     serenity.debug.info "Not a recognizable filename."
     return 1
   }
@@ -39,7 +39,7 @@ serenity.actions.test.run() {
 #
 # Closures: serenity.main, serenity.tokens.execute
 serenity.actions.test.definitions.global() {
-  serenity.tokens.add serenity.tokens.set "_::input_filename" "$(basename "${1}")"
-  serenity.tokens.add serenity.processing.callFilterChainOnToken "$serenity_conf_globalPreprocessing" "_::input_filename"
-  serenity.tokens.add serenity.processing.tokenization "_::input_filename"
+  serenity.tokens- serenity.tokens.set "_::input_filename" "$(basename "${1}")"
+  serenity.tokens- serenity.processing.callFilterChainOnToken "$serenity_conf_globalPreprocessing" "_::input_filename"
+  serenity.tokens- serenity.processing.tokenization "_::input_filename"
 }

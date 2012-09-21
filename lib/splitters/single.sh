@@ -19,7 +19,7 @@ serenity.splitters.single.checkRequirements() {
 }
 
 serenity.splitters.single.run() {
-  serenity.tokens.nestedExecute "${@}"
+  serenity.tokens.nested: "${@}"
   serenity.tokens.movePrefix "" "1"
   serenity.tokens.set "_::episode_count" "1"
 }

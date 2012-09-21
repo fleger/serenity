@@ -17,7 +17,7 @@
 # Dynamic pipelining
 
 # Add a filter to the pipeline definition
-serenity.pipeline.add() {
+serenity.pipeline-() {
   if [ $# -gt 0 ]; then
     _pipeline+=($#)
     _pipeline+=("$@")
@@ -37,7 +37,7 @@ serenity.pipeline._consume() {
 }
 
 # Execute a pipeline definition
-serenity.pipeline.execute() {
+serenity.pipeline:() {
   local -a _pipeline=()
 
   "${@}"

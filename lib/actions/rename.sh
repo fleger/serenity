@@ -56,14 +56,14 @@ serenity.actions.rename.run() {
   done
   shift $((${OPTIND} - 1))
 
-  serenity.processing.refiningContext "${serenity_conf_refiningBackends[@]}" -- serenity.actions.rename._run "$@"
+  serenity.processing.refiners: "${serenity_conf_refiningBackends[@]}" -- serenity.actions.rename._run "$@"
 }
 
 serenity.actions.rename._run() {
   # Process files
   local f
   for f; do
-    serenity.tokens.execute serenity.actions.rename.definitions.global "${f}" || {
+    serenity.tokens: serenity.actions.rename.definitions.global "${f}" || {
       serenity.debug.error "Something went wrong."
       return 1
     }
@@ -77,7 +77,7 @@ serenity.actions.rename._run() {
 #
 # Global rename process definition for FILE
 #
-# Closures: serenity.main, serenity.actions.rename.run, serenity.tokens.execute
+# Closures: serenity.main, serenity.actions.rename.run, serenity.tokens:
 serenity.actions.rename.definitions.global() {
   local -a flat=()
   local key
@@ -90,36 +90,36 @@ serenity.actions.rename.definitions.global() {
   fi
   outputDirectory="$(readlink -f "$outputDirectory")"
 
-  serenity.tokens.add serenity.tokens.set "_::input_filename" "$(basename "${1}")" 
-  serenity.tokens.add serenity.processing.callFilterChainOnToken "$serenity_conf_globalPreprocessing" "_::input_filename"
-  serenity.tokens.add serenity.processing.tokenization "_::input_filename"
+  serenity.tokens- serenity.tokens.set "_::input_filename" "$(basename "${1}")"
+  serenity.tokens- serenity.processing.callFilterChainOnToken "$serenity_conf_globalPreprocessing" "_::input_filename"
+  serenity.tokens- serenity.processing.tokenization "_::input_filename"
   flat=()
   for key in "${!serenity_conf_tokenPreprocessing[@]}"; do
     flat+=("${key}" "${serenity_conf_tokenPreprocessing[${key}]}")
   done
-  serenity.tokens.add serenity.processing.tokenProcessing "${flat[@]}"
-  serenity.tokens.add serenity.processing.split serenity.actions.rename.definitions.perEpisode
-  serenity.tokens.add serenity.processing.aggregate "${serenity_conf_aggregatorPriorities[@]}"
+  serenity.tokens- serenity.processing.tokenProcessing "${flat[@]}"
+  serenity.tokens- serenity.processing.split serenity.actions.rename.definitions.perEpisode
+  serenity.tokens- serenity.processing.aggregate "${serenity_conf_aggregatorPriorities[@]}"
   flat=()
   for key in "${!serenity_conf_tokenPostprocessing[@]}"; do
     flat+=("${key}" "${serenity_conf_tokenPostprocessing[${key}]}")
   done
-  serenity.tokens.add serenity.processing.tokenProcessing "${flat[@]}"
-  serenity.tokens.add serenity.processing.format "_::output_filename" "${serenity_conf_formatting[@]}"
+  serenity.tokens- serenity.processing.tokenProcessing "${flat[@]}"
+  serenity.tokens- serenity.processing.format "_::output_filename" "${serenity_conf_formatting[@]}"
   
-  serenity.tokens.add serenity.processing.callFilterChainOnToken "$serenity_conf_globalPostprocessing" "_::output_filename"
+  serenity.tokens- serenity.processing.callFilterChainOnToken "$serenity_conf_globalPostprocessing" "_::output_filename"
   if ! ${rename_opt_dryRun}; then
-    serenity.tokens.add serenity.actions.rename.move "$1" "$outputDirectory" "_::output_filename"
+    serenity.tokens- serenity.actions.rename.move "$1" "$outputDirectory" "_::output_filename"
   else
-    serenity.tokens.add serenity.tokens.get "_::output_filename"
+    serenity.tokens- serenity.tokens.get "_::output_filename"
   fi
 }
 
 # Per-episode rename process definition
 #
-# Closures: serenity.main, serenity.tokens.execute
+# Closures: serenity.main, serenity.tokens:
 serenity.actions.rename.definitions.perEpisode() {
-  serenity.tokens.add serenity.processing.refining "${serenity_conf_refiningBackends[@]}"
+  serenity.tokens- serenity.processing.refining "${serenity_conf_refiningBackends[@]}"
 }
 
 # serenity.actions.rename.move SOURCE DEST_DIR OUTPUT_FILENAME_TOKEN

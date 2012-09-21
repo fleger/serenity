@@ -21,7 +21,7 @@
 # Call the given filter CHAIN
 serenity.processing.callFilterChain() {
   if [[ -n "${1}" ]]; then
-    serenity.pipeline.execute "serenity.conf.chains.${1}"
+    serenity.pipeline: "serenity.conf.chains.${1}"
   else
     echo "$(< /dev/stdin)"
   fi
@@ -31,7 +31,7 @@ serenity.processing.callFilterChain() {
 #
 # Call the given filter CHAIN on TOKEN
 #
-# Closures: serenity.tokens.execute
+# Closures: serenity.tokens:
 serenity.processing.callFilterChainOnToken() {
   serenity.tokens.set "$2" "$(serenity.processing.callFilterChain "$1" < <(serenity.tokens.get "$2"))"
 }
@@ -40,7 +40,7 @@ serenity.processing.callFilterChainOnToken() {
 #
 # Extract tokens from INPUT_TOKEN.
 #
-# Closures: serenity.main, serenity.tokens.execute
+# Closures: serenity.main, serenity.tokens:
 serenity.processing.tokenization() {
   local inputBuffer="$(serenity.tokens.get "$1")"
   local offset=0
@@ -58,7 +58,7 @@ serenity.processing.tokenization() {
     commandLine=("${serenity_conf__tokenizers[@]:${offset}:${length}}")
     offset=$(( ${offset} + ${length} ))
     commandLine[0]="serenity.tokenizers.${commandLine[0]}.run"
-    if serenity.tokens.nestedExecute serenity.tokens.add "${commandLine[@]}" <<< "${inputBuffer}"; then
+    if serenity.tokens.nested: serenity.tokens- "${commandLine[@]}" <<< "${inputBuffer}"; then
       serenity.debug.debug "Tokenization: success with ${commandLine[*]}"
       if [ "x$serenity_conf_keepExtension" = "xyes" ]; then
         serenity.tokens.set "_::extension" "$extension"
@@ -77,7 +77,7 @@ serenity.processing.tokenization() {
 #
 # Run the splitters.
 #
-# Closures: serenity.main, serenity.tokens.execute
+# Closures: serenity.main, serenity.tokens:
 serenity.processing.split() {
   local i
   local returnCode=1
@@ -99,7 +99,7 @@ serenity.processing.split() {
 #
 # Process the tokens with filter chains.
 #
-# Closure: serenity.tokens.execute
+# Closure: serenity.tokens:
 serenity.processing.tokenProcessing() {
   # Processing chains unpacking
   local -A tokenProcessing=()
@@ -130,7 +130,7 @@ serenity.processing.tokenProcessing() {
   done
 }
 
-serenity.processing.refiningContext() {
+serenity.processing.refiners:() {
   local commandLine=()
   while [[ "$1" != "--" ]]; do
     serenity.tools.isFunction "serenity.refiningBackends.${1}.context" &&
@@ -146,11 +146,11 @@ serenity.processing.refiningContext() {
 #
 # Refine the tokens using the first BACKEND that succeed.
 #
-# Closure: serenity.tokens.execute
+# Closure: serenity.tokens:
 serenity.processing.refining() {
   local backend
   for backend; do
-    serenity.tokens.nestedExecute serenity.tokens.add "serenity.refiningBackends.${backend}.run" &&
+    serenity.tokens.nested: serenity.tokens- "serenity.refiningBackends.${backend}.run" &&
     serenity.debug.debug "Refining: success with ${backend}" &&
     serenity.tokens.set "_::refining_backend" "${backend}" &&
     return 0 ||
@@ -163,7 +163,7 @@ serenity.processing.refining() {
 #
 # Aggregate the tokens using the first AGGREGATOR that succeed.
 #
-# Closure: serenity.tokens.execute
+# Closure: serenity.tokens:
 serenity.processing.aggregate() {
   local i
   for i; do
@@ -178,7 +178,7 @@ serenity.processing.aggregate() {
 #
 # Format the tokens to produce the final name.
 #
-# Closure: serenity.tokens.execute
+# Closure: serenity.tokens:
 serenity.processing.format() {
   local outputTokenType="$1"
   shift

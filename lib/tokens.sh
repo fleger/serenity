@@ -19,7 +19,7 @@
 # ----------------------
 # Context core functions
 # ----------------------
-serenity.tokens.execute() {
+serenity.tokens:() {
   local -a __inits=()
   local -a __initsLengths=()
   local -a __exits=()
@@ -32,7 +32,7 @@ serenity.tokens.execute() {
   serenity.tokens.__run
 }
 
-serenity.tokens.add() {
+serenity.tokens-() {
   local -r FUNCTION=0
   local -r INIT=1
   local -r EXIT=2
@@ -154,7 +154,7 @@ serenity.tokens.get() {
 #
 # Set the value of TOKEN_TYPE to TOKEN_VALUE.
 #
-# Closure: serenity.tokens.execute
+# Closure: serenity.tokens:
 serenity.tokens.set() {
   local -r FUNCTION=0
   local -r INIT=1
@@ -187,7 +187,7 @@ serenity.tokens.set() {
 #
 # Test if TOKEN_TYPE is set in current_tokens.
 #
-# Closure: serenity.tokens.execute
+# Closure: serenity.tokens:
 serenity.tokens.isSet() {
   local -r FUNCTION=0
   local -r INIT=1
@@ -252,7 +252,7 @@ serenity.tokens.remove() {
 #
 # Copy the value of the token types prefixed by SOURCE to token types prefixed by DEST.
 #
-# Closure: serenity.tokens.execute
+# Closure: serenity.tokens:
 serenity.tokens.copyPrefix() {
   local orig="$1"
   local dest="$2"
@@ -288,14 +288,14 @@ serenity.tokens.movePrefix() {
 # ---------------------------------
 # Nested context convenience helper
 # ---------------------------------
-serenity.tokens.nestedExecute() {
-  serenity.tokens.execute serenity.tokens.__nestedExecution "$@"
+serenity.tokens.nested:() {
+  serenity.tokens: serenity.tokens.__nestedExecution "$@"
 }
 
 serenity.tokens.__nestedExecution() {
-  serenity.tokens.add -i serenity.tokens.phaseAwareMerge
+  serenity.tokens- -i serenity.tokens.phaseAwareMerge
   "$@"
-  serenity.tokens.add -e serenity.tokens.phaseAwareMerge
+  serenity.tokens- -e serenity.tokens.phaseAwareMerge
 }
 
 serenity.tokens.phaseAwareMerge() {
@@ -320,7 +320,7 @@ serenity.tokens.phaseAwareMerge() {
 #
 # Copy all the tokens with the same value across all the SOURCEs into DEST
 #
-# Closure: serenity.tokens.execute, serenity.main
+# Closure: serenity.tokens:, serenity.main
 serenity.tokens.copyCommon() {
   local -A tokenValues=()
   local -a badTokens=()

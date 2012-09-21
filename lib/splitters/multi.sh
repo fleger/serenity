@@ -21,15 +21,15 @@ serenity.splitters.multi.checkRequirements() {
 serenity.splitters.multi.definition() {
   local -i prefix="$1"
   shift
-  serenity.tokens.add serenity.tokens.movePrefix "$prefix" ""
+  serenity.tokens- serenity.tokens.movePrefix "$prefix" ""
   "$@"
-  serenity.tokens.add serenity.tokens.movePrefix "" "$prefix"
+  serenity.tokens- serenity.tokens.movePrefix "" "$prefix"
 }
 
 serenity.splitters.multi.run() {
   local -i i=1
   while [[ -n "$(serenity.tokens.get ${i}::episode)" ]]; do
-    serenity.tokens.nestedExecute serenity.splitters.multi.definition "${i}" "${@}"
+    serenity.tokens.nested: serenity.splitters.multi.definition "${i}" "${@}"
     i=$(( i + 1 ))
   done
   i=$(( i - 1 ))
