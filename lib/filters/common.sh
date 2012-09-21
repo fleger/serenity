@@ -16,6 +16,33 @@
 
 readonly serenity_filters_romanNumeralRE="[IVXLCDMivxlcdm]"
 
+serenity.filters.englishToArabic() {
+  local inputBuffer="$(< /dev/stdin)"
+  case "${inputBuffer,,*}" in
+    "zero") echo 0;;
+    "one") echo 1;;
+    "two") echo 2;;
+    "three") echo 3;;
+    "four") echo 4;;
+    "five") echo 5;;
+    "six") echo 6;;
+    "seven") echo 7;;
+    "eight") echo 8;;
+    "nine") echo 9;;
+    "ten") echo 10;;
+    "eleven") echo 11;;
+    "twelve") echo 12;;
+    "thirteen") echo 13;;
+    "fourteen") echo 14;;
+    "fifteen") echo 15;;
+    "sixteen") echo 16;;
+    "seventeen") echo 17;;
+    "eighteen") echo 18;;
+    "nineteen") echo 19;;
+    *) echo "$inputBuffer";;
+  esac
+}
+
 serenity.filters.romanToArabic() {
   local -Ar value=( [M]=1000
                     [D]=500
