@@ -26,6 +26,9 @@ readonly -a serenity_env_conf=("@CONFDIR@/serenity.conf"
 # Library path
 readonly serenity_env_lib="@LIBDIR@"
 
+# Cache path
+readonly serenity_env_cache="${XDG_CACHE_HOME-=${HOME}/.cache}/serenity"
+
 # Script name
 readonly serenity_env_executable="${0}"
 

@@ -19,7 +19,7 @@
 serenity.datasources.thetvdb:() {
   serenity.debug.debug "TheTVDB: entering context"
   local -r SERENITY_DATASOURCES_THETVDB_API_KEY="BE137819321004FF"
-  local -r SERENITY_DATASOURCES_THETVDB_CACHE_PATH="${XDG_CACHE_HOME:-$HOME/.cache}/serenity/refining/thetvdb"
+  local -r SERENITY_DATASOURCES_THETVDB_CACHE_PATH="${serenity_env_cache}/datasources/thetvdb"
   local -r SERENITY_DATASOURCES_THETVDB_SEARCH_LANGUAGE="all"
 
   local -ir SERENITY_DATASOURCES_THETVDB_UPDATE_DAY=$((60 * 60 * 24))

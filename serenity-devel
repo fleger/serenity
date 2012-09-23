@@ -26,6 +26,9 @@ readonly -a serenity_env_conf=("${baseDir}/serenity.conf")
 # Library path
 readonly serenity_env_lib="${baseDir}/lib"
 
+# Cache path
+readonly serenity_env_cache="${baseDir}/cache"
+
 # Script name
 readonly serenity_env_executable="${0}"
 
