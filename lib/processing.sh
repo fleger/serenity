@@ -40,7 +40,7 @@ serenity.processing.callFilterChainOnToken() {
 #
 # Extract tokens from INPUT_TOKEN.
 #
-# Closures: serenity.main, serenity.tokens:
+# Closures: serenity:, serenity.tokens:
 serenity.processing.tokenization() {
   local inputBuffer="$(serenity.tokens.get "$1")"
   local offset=0
@@ -77,7 +77,7 @@ serenity.processing.tokenization() {
 #
 # Run the splitters.
 #
-# Closures: serenity.main, serenity.tokens:
+# Closures: serenity:, serenity.tokens:
 serenity.processing.split() {
   local i
   local returnCode=1

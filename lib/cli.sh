@@ -1,5 +1,3 @@
-#! /bin/bash
-
 #    serenity - An automated episode renamer.
 #    Copyright (C) 2010-2012  Florian Léger
 #
@@ -16,30 +14,22 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# Launch script (self-contained version)
+# serenity.cli.main ACTION ARGS...
+# CLI entry point
+# Closures: serenity:
 
-baseDir="$(dirname "${0}")"
+serenity.cli.main() {
+  # Parse commandline
+  local action="help"
+  (( $# > 0 )) && {
+    action="$1"
+    shift
+  }
 
-# Configuration file(s)
-readonly -a serenity_env_conf=("${baseDir}/serenity.conf")
-
-# Library path
-readonly serenity_env_lib="${baseDir}/lib"
-
-# Cache path
-readonly serenity_env_cache="${baseDir}/cache"
-
-# Script name
-readonly serenity_env_executable="${0}"
-
-unset baseDir
-
-# Load the main library, the cli library and call serenity.cli.main
-if [ -f "${serenity_env_lib}/serenity.sh" ]; then
-  . "${serenity_env_lib}/serenity.sh"
-  . "${serenity_env_lib}/cli.sh"
-  serenity: serenity.cli.main "${@}"
-else
-  echo "ERROR: can't find ${serenity_env_lib}/serenity.sh. Aborting." >&2
-  exit 1
-fi
+  if serenity.tools.isFunction "serenity.actions.${action}.run"; then
+    serenity.debug.debug "Serenity: running $action"
+    "serenity.actions.${action}.run" "${@}"
+  else
+    serenity.crash "Serenity: no action named $action"
+  fi
+}

@@ -1,5 +1,5 @@
 #    serenity - An automated episode renamer.
-#    Copyright (C) 2010-2011  Florian Léger
+#    Copyright (C) 2010-2012  Florian Léger
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -14,13 +14,11 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# Main
+# Main library
 
 set -eo pipefail
 
-# serenity.main ACTION ARGS...
-# Main entry point
-serenity.main() {
+serenity:() {
   # Manual early load of the debugging routines
   source "${serenity_env_lib}/debug.sh" || {
     echo "Serenity: failed to load ${serenity_env_lib}/debug.sh"
@@ -71,19 +69,7 @@ serenity.main() {
   serenity.loadUserConfig "${serenity_env_conf[@]}"
   serenity.conf.check.run
 
-  # Parse commandline
-  local action="help"
-  (( $# > 0 )) && {
-    action="$1"
-    shift
-  }
-
-  if serenity.tools.isFunction "serenity.actions.${action}.run"; then
-    serenity.debug.debug "Serenity: running $action"
-    "serenity.actions.${action}.run" "${@}"
-  else
-    serenity.crash "Serenity: no action named $action"
-  fi
+  "$@"
 }
 
 # serenity.crash MESSAGE

@@ -15,8 +15,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-# serenity.actions.test.run [OPTIONS]... FILES...
-# Test action entry point
+
 serenity.actions.test.help() {
 cat << EOM
 test FILENAME
@@ -25,6 +24,8 @@ test FILENAME
 EOM
 }
 
+# serenity.actions.test.run [OPTIONS]... FILES...
+# Test action entry point
 serenity.actions.test.run() {
   serenity.tokens: serenity.actions.test.definitions.global "${1}" || {
     serenity.debug.info "Not a recognizable filename."
@@ -37,7 +38,7 @@ serenity.actions.test.run() {
 #
 # Global test process definition for FILE
 #
-# Closures: serenity.main, serenity.tokens.execute
+# Closures: serenity:, serenity.tokens:
 serenity.actions.test.definitions.global() {
   serenity.tokens- serenity.tokens.set "_::input_filename" "$(basename "${1}")"
   serenity.tokens- serenity.processing.callFilterChainOnToken "$serenity_conf_globalPreprocessing" "_::input_filename"

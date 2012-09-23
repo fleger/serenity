@@ -32,10 +32,11 @@ readonly serenity_env_cache="${XDG_CACHE_HOME-=${HOME}/.cache}/serenity"
 # Script name
 readonly serenity_env_executable="${0}"
 
-# Load the main library and call serenity.main
+# Load the main library, the cli library and call serenity.cli.main
 if [ -f "${serenity_env_lib}/serenity.sh" ]; then
   . "${serenity_env_lib}/serenity.sh"
-  serenity.main "${@}"
+  . "${serenity_env_lib}/cli.sh"
+  serenity: serenity.cli.main "${@}"
 else
   echo "ERROR: can't find ${serenity_env_lib}/serenity.sh. Aborting." >&2
   exit 1

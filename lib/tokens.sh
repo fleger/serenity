@@ -320,7 +320,7 @@ serenity.tokens.phaseAwareMerge() {
 #
 # Copy all the tokens with the same value across all the SOURCEs into DEST
 #
-# Closure: serenity.tokens:, serenity.main
+# Closure: serenity.tokens:, serenity:
 serenity.tokens.copyCommon() {
   local -A tokenValues=()
   local -a badTokens=()

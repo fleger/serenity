@@ -77,7 +77,7 @@ serenity.actions.rename._run() {
 #
 # Global rename process definition for FILE
 #
-# Closures: serenity.main, serenity.actions.rename.run, serenity.tokens:
+# Closures: serenity:, serenity.actions.rename.run, serenity.tokens:
 serenity.actions.rename.definitions.global() {
   local -a flat=()
   local key
@@ -117,7 +117,7 @@ serenity.actions.rename.definitions.global() {
 
 # Per-episode rename process definition
 #
-# Closures: serenity.main, serenity.tokens:
+# Closures: serenity:, serenity.tokens:
 serenity.actions.rename.definitions.perEpisode() {
   serenity.tokens- serenity.processing.queryDatasources "${serenity_conf_datasources[@]}"
 }
@@ -126,7 +126,7 @@ serenity.actions.rename.definitions.perEpisode() {
 #
 # Move a SOURCE to DEST_DIR/OUTPUT_FILENAME_TOKEN value
 #
-# Closure: serenity.actions.rename.run, serenity.tokens.execute
+# Closure: serenity.actions.rename.run, serenity.tokens:
 serenity.actions.rename.move() {
   mkdir -p "${2}" &&
   mv "${rename_opt_mvOpts[@]}" "${1}" "${2}/$(serenity.tokens.get "${3}")" || {
