@@ -96,8 +96,8 @@ serenity.conf.check.list.splitters() {
   serenity.conf.check.functions "serenity_conf_splitterPriorities" "serenity.splitters." ".checkRequirements" || return 1
 }
 
-serenity.conf.check.list.refiningBackends() {
-  serenity.conf.check.functions "serenity_conf_refiningBackends" "serenity.refiningBackends." ".run"
+serenity.conf.check.list.datasources() {
+  serenity.conf.check.functions "serenity_conf_datasources" "serenity.datasources." ".run"
 }
 
 serenity.conf.check.list.aggregators() {

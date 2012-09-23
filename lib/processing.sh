@@ -130,11 +130,11 @@ serenity.processing.tokenProcessing() {
   done
 }
 
-serenity.processing.refiners:() {
+serenity.processing.enableDatasources:() {
   local commandLine=()
   while [[ "$1" != "--" ]]; do
-    serenity.tools.isFunction "serenity.refiningBackends.${1}.context" &&
-    commandLine+=("serenity.refiningBackends.${1}.context")
+    serenity.tools.isFunction "serenity.datasources.${1}:" &&
+    commandLine+=("serenity.datasources.${1}:")
     shift
   done
   shift
@@ -142,19 +142,19 @@ serenity.processing.refiners:() {
 }
 
 
-# serenity.processing.refining BACKEND...
+# serenity.processing.queryDatasource DATASOURCE...
 #
-# Refine the tokens using the first BACKEND that succeed.
+# Refine the tokens using the first DATASOURCE that succeed.
 #
 # Closure: serenity.tokens:
-serenity.processing.refining() {
-  local backend
-  for backend; do
-    serenity.tokens.nested: serenity.tokens- "serenity.refiningBackends.${backend}.run" &&
-    serenity.debug.debug "Refining: success with ${backend}" &&
-    serenity.tokens.set "_::refining_backend" "${backend}" &&
+serenity.processing.queryDatasources() {
+  local datasource
+  for datasource; do
+    serenity.tokens.nested: serenity.tokens- "serenity.datasources.${datasource}.run" &&
+    serenity.debug.debug "Refining: success with ${datasource}" &&
+    serenity.tokens.set "_::datasource" "${datasource}" &&
     return 0 ||
-    serenity.debug.debug "Refining: failure with ${backend}"
+    serenity.debug.debug "Refining: failure with ${datasource}"
   done
   return 1
 }

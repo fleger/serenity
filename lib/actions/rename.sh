@@ -56,7 +56,7 @@ serenity.actions.rename.run() {
   done
   shift $((${OPTIND} - 1))
 
-  serenity.processing.refiners: "${serenity_conf_refiningBackends[@]}" -- serenity.actions.rename._run "$@"
+  serenity.processing.enableDatasources: "${serenity_conf_datasources[@]}" -- serenity.actions.rename._run "$@"
 }
 
 serenity.actions.rename._run() {
@@ -119,7 +119,7 @@ serenity.actions.rename.definitions.global() {
 #
 # Closures: serenity.main, serenity.tokens:
 serenity.actions.rename.definitions.perEpisode() {
-  serenity.tokens- serenity.processing.refining "${serenity_conf_refiningBackends[@]}"
+  serenity.tokens- serenity.processing.queryDatasources "${serenity_conf_datasources[@]}"
 }
 
 # serenity.actions.rename.move SOURCE DEST_DIR OUTPUT_FILENAME_TOKEN

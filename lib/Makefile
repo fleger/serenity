@@ -14,7 +14,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-SUBDIRS=actions aggregators filters formatters refining splitters tokenizers
+SUBDIRS=actions aggregators filters formatters datasources splitters tokenizers
 LIBS=$(wildcard *.sh)
 SOURCES=$(LIBS) Makefile
 

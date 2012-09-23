@@ -35,7 +35,7 @@ serenity.main() {
                           ["aggregators"]='serenity\.aggregators\.([^.]+)\.run'
                           ["filters"]='serenity\.filters\.(.+)'
                           ["formatters"]='serenity\.formatters\.([^.]+)\.run'
-                          ["refining"]='serenity\.refiningBackends\.([^.]+)\.run'
+                          ["datasources"]='serenity\.datasources\.([^.]+)\.run'
                           ["splitters"]='serenity\.splitters\.([^.]+)\.run'
                           ["tokenizers"]='serenity\.tokenizers\.([^.]+)\.run')
 
@@ -43,7 +43,7 @@ serenity.main() {
                                 ["aggregators"]='serenity.aggregators.%s.help'
                                 ["filters"]='serenity.filters.%s.help'
                                 ["formatters"]='serenity.formatters.%s.help'
-                                ["refining"]='serenity.refiningBackends.%s.help'
+                                ["datasources"]='serenity.datasources.%s.help'
                                 ["splitters"]='serenity.splitters.%s.help'
                                 ["tokenizers"]='serenity.tokenizers.%s.help')
 
