@@ -16,6 +16,8 @@
 
 # TheTVDB data source
 
+local -A serenity_conf_datasource_thetvdb_idlOverrides=()
+
 serenity.datasources.thetvdb:() {
   serenity.debug.debug "TheTVDB: entering context"
   local -r SERENITY_DATASOURCES_THETVDB_API_KEY="BE137819321004FF"
@@ -256,7 +258,11 @@ serenity.datasources.thetvdb.pickZipMirror() {
 serenity.datasources.thetvdb.getSeriesIdl() {
   if ! serenity.tools.contains "$1" "${!serenity_datasources_thetvdb_cachedSeriesIdls[@]}"; then
     serenity.debug.debug "TheTVDB: $1 idl not in cache"
-    serenity_datasources_thetvdb_cachedSeriesIdls["$1"]="$(serenity.datasources.thetvdb.fetchSeriesIdl "$1")"
+    local idl="$(serenity.datasources.thetvdb.fetchSeriesIdl "$1")"
+    if serenity.tools.contains "$idl" "${!serenity_conf_datasource_thetvdb_idlOverrides[@]}"; then
+      idl="${serenity_conf_datasource_thetvdb_idlOverrides["$idl"]}"
+    fi
+    serenity_datasources_thetvdb_cachedSeriesIdls["$1"]="$idl"
   fi
 }
 
