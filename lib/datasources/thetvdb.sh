@@ -17,12 +17,12 @@
 # TheTVDB data source
 
 local -A serenity_conf_datasource_thetvdb_idlOverrides=()
+local serenity_conf_datasource_thetvdb_searchLanguage="all"
 
 serenity.datasources.thetvdb:() {
   serenity.debug.debug "TheTVDB: entering context"
   local -r SERENITY_DATASOURCES_THETVDB_API_KEY="BE137819321004FF"
   local -r SERENITY_DATASOURCES_THETVDB_CACHE_PATH="${serenity_env_cache}/datasources/thetvdb"
-  local -r SERENITY_DATASOURCES_THETVDB_SEARCH_LANGUAGE="all"
 
   local -ir SERENITY_DATASOURCES_THETVDB_UPDATE_DAY=$((60 * 60 * 24))
   local -ir SERENITY_DATASOURCES_THETVDB_UPDATE_WEEK=$((60 * 60 * 24 * 7))
@@ -150,6 +150,8 @@ serenity.datasources.thetvdb.getEpisode() {
   local key
   local value
 
+  serenity.tokens.set "idl" "$seriesId-$language"
+
   while read key value; do
     serenity.tokens.set "$key" "$value"
   done < <(
@@ -267,7 +269,7 @@ serenity.datasources.thetvdb.getSeriesIdl() {
 }
 
 serenity.datasources.thetvdb.fetchSeriesIdl() {
-  local language="$(serenity.filters.urlEncode <<< "$SERENITY_DATASOURCES_THETVDB_SEARCH_LANGUAGE")"
+  local language="$(serenity.filters.urlEncode <<< "$serenity_conf_datasource_thetvdb_searchLanguage")"
   local show="$(serenity.filters.urlEncode <<< "$1")"
   curl -s "http://www.thetvdb.com/api/GetSeries.php?seriesname=$show&language=$language" |
     xmlstarlet sel -T -t -m "/Data/Series[1]" -v "seriesid" -o "-" -v 'language'
