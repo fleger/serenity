@@ -146,4 +146,6 @@ local serenity_conf_globalPostprocessing=''
 local serenity_conf_tracing='no'
 local serenity_conf_keepExtension='yes'
 local -a serenity_conf_multipartStripList=()
+local -i serenity_conf_curl_connectTimeout=0
+local -i serenity_conf_curl_retry=0
 

@@ -95,13 +95,13 @@ serenity.datasources.thetvdb.fetchMirrors() {
 serenity.datasources.thetvdb.__fetchMirrors() {
   if [[ ! -s "$1" ]]; then
     serenity.debug.debug "TheTVDB: fetching mirrors from www.thetvdb.com"
-    curl -s "http://www.thetvdb.com/api/${SERENITY_DATASOURCES_THETVDB_API_KEY}/mirrors.xml" > \
+    curl -s --connect-timeout "${serenity_conf_curl_connectTimeout}" --retry "${serenity_conf_curl_retry}" "http://www.thetvdb.com/api/${SERENITY_DATASOURCES_THETVDB_API_KEY}/mirrors.xml" > \
       "$1" || return 1
   fi
 }
 
 serenity.datasources.thetvdb.initServerTime() {
-  serenity_datasources_thetvdb_serverTime=$(curl -s "http://www.thetvdb.com/api/Updates.php?type=none" |
+  serenity_datasources_thetvdb_serverTime=$(curl -s --connect-timeout "${serenity_conf_curl_connectTimeout}" --retry "${serenity_conf_curl_retry}" "http://www.thetvdb.com/api/Updates.php?type=none" |
     xmlstarlet sel -T -t -v "/Items/Time" -n) || return 1
   serenity.debug.debug "TheTVDB: server time set to $serenity_datasources_thetvdb_serverTime"
 }
@@ -192,7 +192,7 @@ serenity.datasources.thetvdb.fetchSeries() {
 
   serenity.debug.debug "TheTVDB: Update required for $seriesId-$language"
   # TODO: try to use the cache even if the request fails
-  curl -s "$(serenity.datasources.thetvdb.pickZipMirror)/api/${SERENITY_DATASOURCES_THETVDB_API_KEY}/series/$seriesId/all/$language.zip" > \
+  curl -s --connect-timeout "${serenity_conf_curl_connectTimeout}" --retry "${serenity_conf_curl_retry}" "$(serenity.datasources.thetvdb.pickZipMirror)/api/${SERENITY_DATASOURCES_THETVDB_API_KEY}/series/$seriesId/all/$language.zip" > \
     "$SERENITY_DATASOURCES_THETVDB_CACHE_PATH/$seriesId-$language.zip" || return 1
   serenity_datasources_thetvdb_upToDateSeriesIdls+=("$seriesId-$language")
 }
@@ -241,7 +241,7 @@ serenity.datasources.thetvdb.fetchUpdates() {
   local suffix
   suffix="${SERENITY_DATASOURCES_THETVDB_UPDATE_SUFFIX_MAPPINGS["$serenity_datasources_thetvdb_fetchedUpdate"]}"
   serenity.debug.debug "TheTVDB: fetching updates_$suffix"
-  curl -s "$(serenity.datasources.thetvdb.pickZipMirror)/api/${SERENITY_DATASOURCES_THETVDB_API_KEY}/updates/updates_$suffix.zip" > \
+  curl -s --connect-timeout "${serenity_conf_curl_connectTimeout}" --retry "${serenity_conf_curl_retry}" "$(serenity.datasources.thetvdb.pickZipMirror)/api/${SERENITY_DATASOURCES_THETVDB_API_KEY}/updates/updates_$suffix.zip" > \
     "$SERENITY_DATASOURCES_THETVDB_CACHE_PATH/updates.zip" || {
       serenity_datasources_thetvdb_fetchedUpdate="$SERENITY_DATASOURCES_THETVDB_UPDATE_NONE"
       serenity.debug.warning "TheTVDB: failed to retreive updates_$suffix"
@@ -271,6 +271,6 @@ serenity.datasources.thetvdb.getSeriesIdl() {
 serenity.datasources.thetvdb.fetchSeriesIdl() {
   local language="$(serenity.filters.urlEncode <<< "$serenity_conf_datasource_thetvdb_searchLanguage")"
   local show="$(serenity.filters.urlEncode <<< "$1")"
-  curl -s "http://www.thetvdb.com/api/GetSeries.php?seriesname=$show&language=$language" |
+  curl -s --connect-timeout "${serenity_conf_curl_connectTimeout}" --retry "${serenity_conf_curl_retry}" "http://www.thetvdb.com/api/GetSeries.php?seriesname=$show&language=$language" |
     xmlstarlet sel -T -t -m "/Data/Series[1]" -v "seriesid" -o "-" -v 'language'
 }

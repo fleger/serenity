@@ -53,7 +53,7 @@ serenity.datasources.tvrage.run() {
   }
 
   local response
-  response="$(curl -s "${request}")" && {
+  response="$(curl -s --connect-timeout "${serenity_conf_curl_connectTimeout}" --retry "${serenity_conf_curl_retry}" "${request}")" && {
     if grep '&#[0-9]*;' <<< "${response}"> /dev/null ; then
       response="$(asc2xml <<< "${response}")"
     fi
