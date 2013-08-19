@@ -23,26 +23,39 @@ serenity.datasources.csv.run() {
     serenity.debug.debug "CSV: reading $serenity_conf_datasource_csv_file"
     local line
     local token
-    local counter
+    local counter=0
     local -A items
-    while read line; do
-      counter=0
-      items=()
-      serenity.debug.debug "CSV: reading line $line"
-      while read -d "$serenity_conf_datasource_csv_separator" token; do
-        serenity.debug.debug "CSV: reading token $token"
-        items[${serenity_conf_datasource_csv_format[$counter]}]="$token"
-        counter=$(($counter + 1))
-      done <<< "$line$serenity_conf_datasource_csv_separator" # Hack: add separator at the end of the line
-      [ "x${items[season]}" = "x$(serenity.tokens.get season)" ] &&
-      [ "x${items[episode]}" = "x$(serenity.tokens.get episode)" ] && {
-        serenity.debug.debug "CSV: line matches season and episode"
-        local key
-        for key in "${!items[@]}"; do
-          serenity.tokens.set "${key}" "${items["${key}"]}"
-        done
-        return 0
-      }
+    local -a header=()
+    local state=HEADER
+    while IFS= read line; do
+      case "$state" in
+        HEADER)
+          while read -d "$serenity_conf_datasource_csv_separator" token; do
+            serenity.debug.debug "CSV: reading token type $token"
+            header+=("$token")
+          done <<< "$line$serenity_conf_datasource_csv_separator" # Hack: add separator at the end of the line
+          state=BODY
+          ;;
+        BODY)
+          counter=0
+          items=()
+          serenity.debug.debug "CSV: reading line $line"
+          while read -d "$serenity_conf_datasource_csv_separator" token; do
+            serenity.debug.debug "CSV: reading token $token"
+            items[${header[$counter]}]="$token"
+            counter=$(($counter + 1))
+          done <<< "$line$serenity_conf_datasource_csv_separator" # Hack: add separator at the end of the line
+          [ "x${items[season]}" = "x$(serenity.tokens.get season)" ] &&
+          [ "x${items[episode]}" = "x$(serenity.tokens.get episode)" ] && {
+            serenity.debug.debug "CSV: line matches season and episode"
+            local key
+            for key in "${!items[@]}"; do
+              serenity.tokens.set "${key}" "${items["${key}"]}"
+            done
+            return 0
+          }
+          ;;
+      esac
     done < "$serenity_conf_datasource_csv_file"
   else
     serenity.debug.debug "CSV: $serenity_conf_datasource_csv_file doesn't exist"
