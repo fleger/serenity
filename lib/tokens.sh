@@ -150,6 +150,7 @@ serenity.tokens.get() {
     fi
   fi
 }
+
 # serenity.tokens.set TOKEN_TYPE TOKEN_VALUE
 #
 # Set the value of TOKEN_TYPE to TOKEN_VALUE.
@@ -179,6 +180,46 @@ serenity.tokens.set() {
       tokens_init["${1}"]="${2}";;
     "$EXIT")
       tokens_exit["${1}"]="${2}";;
+  esac
+  serenity.debug.debug "Tokens: set $1 to $2"
+}
+
+# serenity.tokens.forEach COMMAND
+#
+# Execute COMMAND TOKEN_TYPE TOKEN_VALUE for each token.
+#
+# Closure: serenity.tokens:
+serenity.tokens.forEach() {
+  local -r FUNCTION=0
+  local -r INIT=1
+  local -r EXIT=2
+
+  local opt
+  local OPTARG
+  local OPTIND=1
+  local mode="$FUNCTION"
+  while getopts ien opt; do
+    case "$opt" in
+      i) mode="$INIT";;
+      e) mode="$EXIT";;
+    esac
+  done
+  shift $((${OPTIND} - 1))
+
+  local tokenType
+  case "$mode" in
+    "$FUNCTION")
+      for tt in "${!tokens_current[@]}"; do
+        "$1" "$tt" "${tokens_current["$tt"]}"
+      done;;
+    "$INIT")
+      for tt in "${!tokens_init[@]}"; do
+        "$1" "$tt" "${tokens_init["$tt"]}"
+      done;;
+    "$EXIT")
+      for tt in "${!tokens_exit[@]}"; do
+        "$1" "$tt" "${tokens_exit["$tt"]}"
+      done
   esac
   serenity.debug.debug "Tokens: set $1 to $2"
 }
