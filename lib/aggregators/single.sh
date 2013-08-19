@@ -20,4 +20,5 @@ serenity.aggregators.single.checkRequirements() {
 
 serenity.aggregators.single.run() {
   serenity.tokens.copyPrefix "1" ""
+  serenity.tokens.copyPrefix "1" "common"
 }
