@@ -2,3 +2,4 @@
 serenity
 serenity-*.tar.*
 serenity-*/
+cache/
