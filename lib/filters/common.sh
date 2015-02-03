@@ -113,3 +113,11 @@ serenity.filters.urlDecode() {
     fi
   done
 }
+
+serenity.filters.offsetNumber() {
+  local inputBuffer
+  inputBuffer="$(< /dev/stdin)"
+  local offset="$1"
+  echo "$((inputBuffer + offset))"
+}
+
