@@ -23,7 +23,8 @@ serenity.datasources.thetvdb:() {
   serenity.debug.debug "TheTVDB: entering context"
   local -r SERENITY_DATASOURCES_THETVDB_API_KEY="BE137819321004FF"
   local -r SERENITY_DATASOURCES_THETVDB_CACHE_PATH="${serenity_env_cache}/datasources/thetvdb"
-
+  local -r SERENITY_DATASOURCES_THETVDB_IDL_CACHE="${SERENITY_DATASOURCES_THETVDB_CACHE_PATH}/idlcache.txt"
+  
   local -ir SERENITY_DATASOURCES_THETVDB_UPDATE_DAY=$((60 * 60 * 24))
   local -ir SERENITY_DATASOURCES_THETVDB_UPDATE_WEEK=$((60 * 60 * 24 * 7))
   local -ir SERENITY_DATASOURCES_THETVDB_UPDATE_MONTH=$((60 * 60 * 24 * 30))
@@ -50,12 +51,43 @@ serenity.datasources.thetvdb:() {
   "$@"
 
   serenity.datasources.thetvdb.removeUpdatesFromCache
+  serenity.datasources.thetvdb.idlCache.save
+}
+
+serenity.datasources.thetvdb.idlCache.load() {
+  if [[ -f "$SERENITY_DATASOURCES_THETVDB_IDL_CACHE" ]]; then
+    local idl
+    local show
+    while IFS=" " read -r idl show || [[ -n "$idl" ]]; do
+      serenity_datasources_thetvdb_cachedSeriesIdls["$show"]="$idl"
+    done < <(serenity.tools.lockFile -s "$SERENITY_DATASOURCES_THETVDB_IDL_CACHE" \
+              cat "$SERENITY_DATASOURCES_THETVDB_IDL_CACHE")
+  fi
+}
+
+serenity.datasources.thetvdb.idlCache.save() {
+  if (( ${#serenity_datasources_thetvdb_cachedSeriesIdls[@]} > 0)); then
+    serenity.debug.debug "TheTVDB: saving ${#serenity_datasources_thetvdb_cachedSeriesIdls[@]} entries in idl cache"
+    serenity.tools.lockFile "$SERENITY_DATASOURCES_THETVDB_IDL_CACHE" serenity.datasources.thetvdb.idlCache._save
+  fi
+}
+
+serenity.datasources.thetvdb.idlCache._save() {
+  local idl
+  local show
+  for show in "${!serenity_datasources_thetvdb_cachedSeriesIdls[@]}"; do
+    idl="${serenity_datasources_thetvdb_cachedSeriesIdls["$show"]}"
+    if [[ -n "$show" ]] && [[ -n "$idl" ]]; then
+      echo "${idl} $show"
+    fi
+  done > "$SERENITY_DATASOURCES_THETVDB_IDL_CACHE"
 }
 
 serenity.datasources.thetvdb.init() {
   mkdir -p "$SERENITY_DATASOURCES_THETVDB_CACHE_PATH"
   serenity.datasources.thetvdb.initMirrors || return 1
-  serenity.datasources.thetvdb.initServerTime  || return 2
+  serenity.datasources.thetvdb.initServerTime || return 2
+  serenity.datasources.thetvdb.idlCache.load || return 3
   serenity_datasources_thetvdb_initialized=true
 }
 
