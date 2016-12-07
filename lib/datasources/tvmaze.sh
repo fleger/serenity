@@ -16,6 +16,8 @@
 
 # TVMaze SingleSearch data source
 
+# TODO: cache responses per show, reuse TheTVDB idl cache for queries 
+
 serenity.datasources.tvmaze:() {
   local -r serenity_datasources_tvmaze_requestFormat="http://api.tvmaze.com/singlesearch/shows?q=%s&embed=episodes"
   local -ar serenity_datasources_tvmaze_fieldTypes=(show)
