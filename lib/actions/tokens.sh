@@ -67,6 +67,7 @@ serenity.actions.tokens.definitions.global() {
     flat+=("${key}" "${serenity_conf_tokenPreprocessing[${key}]}")
   done
   serenity.tokens- serenity.processing.tokenProcessing "${flat[@]}"
+  serenity.tokens- serenity.conf.enrich
   serenity.tokens- serenity.processing.split serenity.actions.tokens.definitions.perEpisode
   serenity.tokens- serenity.processing.aggregate "${serenity_conf_aggregatorPriorities[@]}"
   flat=()

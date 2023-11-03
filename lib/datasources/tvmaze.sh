@@ -1,5 +1,5 @@
 #    serenity - An automated episode renamer.
-#    Copyright (C) 2010-2016  Florian Léger
+#    Copyright (C) 2010-2023  Florian Léger
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -19,9 +19,12 @@
 # TODO: cache responses per show, reuse TheTVDB idl cache for queries 
 
 serenity.datasources.tvmaze:() {
-  local -r serenity_datasources_tvmaze_requestFormat="http://api.tvmaze.com/singlesearch/shows?q=%s&embed=episodes"
+  local -r serenity_datasources_tvmaze_requestFormat="https://api.tvmaze.com/singlesearch/shows?q=%s&embed=episodes"
+  local -r serenity_datasources_tvmaze_requestShowFormat="https://api.tvmaze.com/shows/%s?embed=episodes"
   local -ar serenity_datasources_tvmaze_fieldTypes=(show)
+  local -ar serenity_datasources_tvmaze_fieldTypesShow=(tvmaze_id)
   local -Ar serenity_datasources_tvmaze_jqExtractors=(
+    [tvmaze_id]='.id'
     [show]='.name'
     [title]='._embedded.episodes[] | select(.number == %episode% and .season == %season%).name'
     [premiered]='.premiered?'
@@ -41,14 +44,24 @@ serenity.datasources.tvmaze.run() {
   local -a fields=()
   local tokenType=""
   local request=""
+  local -a requestParams=()
+  local requestTemplate=""
+  
+  if serenity.tokens.isSet tvmaze_id; then
+    requestTemplate="$serenity_datasources_tvmaze_requestShowFormat"
+    requestParams="${serenity_datasources_tvmaze_fieldTypesShow[@]}"
+  else
+    requestTemplate="$serenity_datasources_tvmaze_requestFormat"
+    requestParams="${serenity_datasources_tvmaze_fieldTypes[@]}"
+  fi
 
-  for tokenType in "${serenity_datasources_tvmaze_fieldTypes[@]}"; do
+  for tokenType in "${requestParams[@]}"; do
     fields+=("$(serenity.filters.urlEncode < <(serenity.tokens.get "${tokenType}"))")
   done
 
-  request="$(printf "${serenity_datasources_tvmaze_requestFormat}" "${fields[@]}")" &&
+  request="$(printf "${requestTemplate}" "${fields[@]}")" &&
   serenity.debug.debug "TVMaze: generated request: $request" || {
-    serenity.debug.warning "TVMaze: failed to generate request ${serenity_datasources_tvmaze_requestFormat} ${fields[*]}"
+    serenity.debug.warning "TVMaze: failed to generate request ${requestTemplate} ${fields[*]}"
     return 1
   }
 
